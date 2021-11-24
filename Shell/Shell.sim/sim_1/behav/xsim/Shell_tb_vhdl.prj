@@ -1,0 +1,19 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"../../../../Shell.srcs/sources_1/new/ControlPath.vhd" \
+"../../../../Shell.srcs/sources_1/new/Fifo.vhd" \
+"../../../../Shell.srcs/sources_1/new/HexToSseg.vhd" \
+"../../../../Shell.srcs/sources_1/new/ModMCounter.vhd" \
+"../../../../Shell.srcs/sources_1/new/ModMCounterUpDown.vhd" \
+"../../../../Shell.srcs/sources_1/new/Ram.vhd" \
+"../../../../Shell.srcs/sources_1/new/Reg.vhd" \
+"../../../../Shell.srcs/sources_1/new/UartTx.vhd" \
+"../../../../Shell.srcs/sources_1/new/UartRx.vhd" \
+"../../../../Shell.srcs/sources_1/new/Uart.vhd" \
+"../../../../Shell.srcs/sources_1/new/SixteenBitDisplay.vhd" \
+"../../../../Shell.srcs/sources_1/new/Shell.vhd" \
+"../../../../Shell.srcs/sources_1/new/SixteenToFourMux.vhd" \
+"../../../../Shell.srcs/sim_1/new/Shell_tb.vhd" \
+
+# Do not sort compile order
+nosort

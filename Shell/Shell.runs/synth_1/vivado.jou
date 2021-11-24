@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Vivado v2021.1 (64-bit)
+# SW Build 3247384 on Thu Jun 10 19:36:07 MDT 2021
+# IP Build 3246043 on Fri Jun 11 00:30:35 MDT 2021
+# Start of session at: Tue Nov 23 22:10:39 2021
+# Process ID: 3273586
+# Current directory: /home/kent/source/vhdl/Shell/Shell.runs/synth_1
+# Command line: vivado -log Shell.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source Shell.tcl
+# Log file: /home/kent/source/vhdl/Shell/Shell.runs/synth_1/Shell.vds
+# Journal file: /home/kent/source/vhdl/Shell/Shell.runs/synth_1/vivado.jou
+#-----------------------------------------------------------
+source Shell.tcl -notrace

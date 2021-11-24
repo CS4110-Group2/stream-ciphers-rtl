@@ -1,0 +1,110 @@
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.1 (lin64) Build 3247384 Thu Jun 10 19:36:07 MDT 2021
+| Date         : Tue Nov 23 22:11:49 2021
+| Host         : kent-ThinkPad-T580 running 64-bit Ubuntu 20.04.3 LTS
+| Command      : report_control_sets -verbose -file Shell_control_sets_placed.rpt
+| Design       : Shell
+| Device       : xc7a35t
+------------------------------------------------------------------------------------
+
+Control Set Information
+
+Table of Contents
+-----------------
+1. Summary
+2. Histogram
+3. Flip-Flop Distribution
+4. Detailed Control Set Information
+
+1. Summary
+----------
+
++----------------------------------------------------------+-------+
+|                          Status                          | Count |
++----------------------------------------------------------+-------+
+| Total control sets                                       |    32 |
+|    Minimum number of control sets                        |    32 |
+|    Addition due to synthesis replication                 |     0 |
+|    Addition due to physical synthesis replication        |     0 |
+| Unused register locations in slices containing registers |    32 |
++----------------------------------------------------------+-------+
+* Control sets can be merged at opt_design using control_set_merge or merge_equivalent_drivers
+** Run report_qor_suggestions for automated merging and remapping suggestions
+
+
+2. Histogram
+------------
+
++--------------------+-------+
+|       Fanout       | Count |
++--------------------+-------+
+| Total control sets |    32 |
+| >= 0 to < 4        |     0 |
+| >= 4 to < 6        |     5 |
+| >= 6 to < 8        |     0 |
+| >= 8 to < 10       |    22 |
+| >= 10 to < 12      |     1 |
+| >= 12 to < 14      |     0 |
+| >= 14 to < 16      |     0 |
+| >= 16              |     4 |
++--------------------+-------+
+* Control sets can be remapped at either synth_design or opt_design
+
+
+3. Flip-Flop Distribution
+-------------------------
+
++--------------+-----------------------+------------------------+-----------------+--------------+
+| Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
++--------------+-----------------------+------------------------+-----------------+--------------+
+| No           | No                    | No                     |               5 |            3 |
+| No           | No                    | Yes                    |              10 |            4 |
+| No           | Yes                   | No                     |               4 |            1 |
+| Yes          | No                    | No                     |              17 |            5 |
+| Yes          | No                    | Yes                    |             228 |           68 |
+| Yes          | Yes                   | No                     |               8 |            3 |
++--------------+-----------------------+------------------------+-----------------+--------------+
+
+
+4. Detailed Control Set Information
+-----------------------------------
+
++----------------+----------------------------------------------------------+-------------------------------------------+------------------+----------------+--------------+
+|  Clock Signal  |                       Enable Signal                      |              Set/Reset Signal             | Slice Load Count | Bel Load Count | Bels / Slice |
++----------------+----------------------------------------------------------+-------------------------------------------+------------------+----------------+--------------+
+|  clk_IBUF_BUFG |                                                          | uartComp/modMCounter/state_reg[8]_i_1_n_0 |                1 |              4 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/UartTxComp/E[0]                                 | rst_IBUF                                  |                2 |              4 |         2.00 |
+|  clk_IBUF_BUFG | uartComp/UartTxComp/FSM_sequential_state_reg_reg[1]_1[0] | rst_IBUF                                  |                1 |              4 |         4.00 |
+|  clk_IBUF_BUFG | display/d_reg                                            | rst_IBUF                                  |                1 |              4 |         4.00 |
+|  clk_IBUF_BUFG |                                                          |                                           |                3 |              5 |         1.67 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[7]_1                      | rst_IBUF                                  |                3 |              8 |         2.67 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[2]_13                     | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[3]_12                     | rst_IBUF                                  |                3 |              8 |         2.67 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[4]_11                     | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[5]_10                     | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[6]_9                      | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/UartRxComp/n_reg                                | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | control/E[0]                                             | control/SR[0]                             |                3 |              8 |         2.67 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[14]_2                     | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[8]_8                      | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[9]_7                      | rst_IBUF                                  |                3 |              8 |         2.67 |
+|  clk_IBUF_BUFG | uartComp/UartRxComp/b_reg                                | rst_IBUF                                  |                3 |              8 |         2.67 |
+|  clk_IBUF_BUFG | uartComp/UartTxComp/b_next                               | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/UartTxComp/s_next_0                             | rst_IBUF                                  |                3 |              8 |         2.67 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[1]_14                     | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[15]_0                     | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[13]_3                     | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[11]_5                     | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[10]_6                     | rst_IBUF                                  |                3 |              8 |         2.67 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[0]_15                     | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/UartTxComp/n_next_1                             | rst_IBUF                                  |                2 |              8 |         4.00 |
+|  clk_IBUF_BUFG | uartComp/tx_interface/reg_file[12]_4                     | rst_IBUF                                  |                1 |              8 |         8.00 |
+|  clk_IBUF_BUFG |                                                          | rst_IBUF                                  |                4 |             10 |         2.50 |
+|  clk_IBUF_BUFG | uartComp/UartRxComp/s_reg                                | rst_IBUF                                  |                6 |             16 |         2.67 |
+|  clk_IBUF_BUFG | display/sel                                              |                                           |                5 |             17 |         3.40 |
+|  clk_IBUF_BUFG | control/p_0_in                                           |                                           |                8 |             32 |         4.00 |
+|  clk_IBUF_BUFG | control/i_cnt[31]_i_1_n_0                                | rst_IBUF                                  |               11 |             32 |         2.91 |
++----------------+----------------------------------------------------------+-------------------------------------------+------------------+----------------+--------------+
+
+

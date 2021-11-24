@@ -1,0 +1,29 @@
+Vivado Simulator v2021.1
+Copyright 1986-1999, 2001-2021 Xilinx, Inc. All Rights Reserved.
+Running: /home/kent/opt/Xilinx/Vivado/2021.1/bin/unwrapped/lnx64.o/xelab -wto 7388a3e11ae44571b9b83bb70ae0e8e5 --incr --debug typical --relax --mt 8 -L xil_defaultlib -L secureip --snapshot Shell_tb_behav xil_defaultlib.Shell_tb -log elaborate.log 
+Using 8 slave threads.
+Starting static elaboration
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling package std.standard
+Compiling package std.textio
+Compiling package ieee.std_logic_1164
+Compiling package ieee.numeric_std
+Compiling package ieee.math_real
+Compiling architecture behavioral of entity xil_defaultlib.ControlPath [controlpath_default]
+Compiling architecture behavioral of entity xil_defaultlib.Fifo [fifo_default]
+Compiling architecture behavioral of entity xil_defaultlib.UartTx [uarttx_default]
+Compiling architecture behavioral of entity xil_defaultlib.ModMCounterEn [\ModMCounterEn(n=9,m=325)\]
+Compiling architecture behavioral of entity xil_defaultlib.UartRx [uartrx_default]
+Compiling architecture behavioral of entity xil_defaultlib.Uart [uart_default]
+Compiling architecture behavioral of entity xil_defaultlib.Ram [ram_default]
+Compiling architecture behavioral of entity xil_defaultlib.ModMCounterUpDown [\ModMCounterUpDown(n=8,m=256)\]
+Compiling architecture behavioral of entity xil_defaultlib.Reg [reg_default]
+Compiling architecture behavioral of entity xil_defaultlib.SixteenToFourMux [sixteentofourmux_default]
+Compiling architecture behavioral of entity xil_defaultlib.HexToSseg [hextosseg_default]
+Compiling architecture behavioral of entity xil_defaultlib.SixteenBitDisplay [sixteenbitdisplay_default]
+Compiling architecture behavioral of entity xil_defaultlib.Shell [shell_default]
+Compiling architecture behavioral of entity xil_defaultlib.shell_tb
+Built simulation snapshot Shell_tb_behav
