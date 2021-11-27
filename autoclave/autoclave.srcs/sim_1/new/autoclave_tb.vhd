@@ -34,19 +34,23 @@ architecture arch of autoclave_tb is
     
     Component autoclave
         Port ( reset, clk: in std_logic;
-             rx:         in std_logic;
-             tx:         out std_logic;
+             en, load, clr: in std_logic;
+             ascii_in: in std_logic_vector(7 downto 0);
+             ascii_out: out std_logic_vector(7 downto 0);
              switchEncrypt: in std_logic;
-             ledEncrypt: out std_logic );
+             ledEncrypt: out std_logic);
     end Component;
 
     signal clk, reset: std_logic;
-    signal srx, stx, switchEncrypt: std_logic;
+    signal en, load, clr: std_logic;
+    signal switchEncrypt: std_logic;
+    signal ascii_in, ascii_out: std_logic_vector(7 downto 0);
 
 begin
     uut: autoclave
         Port Map(clk => clk, reset => reset,
-                 rx => srx, tx => stx,
+                 en => en, load => load, clr => clr,
+                 ascii_in => ascii_in, ascii_out => ascii_out,
                  switchEncrypt=>switchEncrypt );
 
     clk_process: process
@@ -60,24 +64,24 @@ begin
     stim: process
     procedure SendMessage( msg : std_logic_vector( 7 downto 0 ) ) is
     begin
-        srx <= '0'; -- start bit = 0
-        wait for bit_period;
-        for i in 0 to 7 loop
-            srx <= msg(i);   -- 8 data bits
-            wait for bit_period;
-        end loop;
-        srx <= '1'; -- stop bit = 1
-        wait for 1ms;
+        ascii_in <= msg;
+        wait for clk_period;
+        load <= '1';
+        wait for clk_period;
+        load <= '0';
+--        wait for clk_period;
     end procedure;
     
     begin
         -- Test encryption
-        switchEncrypt <='1';
         reset <= '1';
         wait for clk_period*2;
         reset <= '0';
         wait for clk_period*2;
-        
+        switchEncrypt <='1';
+        wait for clk_period*2;
+        en <= '1';
+        wait for clk_period*2;
         SendMessage( rx_data_ascii_H );
         SendMessage( rx_data_ascii_E );
         SendMessage( rx_data_ascii_L );
@@ -90,14 +94,17 @@ begin
         SendMessage( rx_data_ascii_L );
         SendMessage( rx_data_ascii_D );
         SendMessage( rx_data_ascii_enter );
+        wait for clk_period*2;
         
-        -- Test decryption
+--        -- Test decryption
         switchEncrypt <='0';
-        reset <= '1';
         wait for clk_period*2;
-        reset <= '0';
+        clr <= '1';
         wait for clk_period*2;
-        
+        clr <= '0';
+        wait for clk_period*2;
+        en <= '1';
+        wait for clk_period*2;     
         SendMessage( rx_data_ascii_Z );
         SendMessage( rx_data_ascii_I );
         SendMessage( rx_data_ascii_N );
@@ -109,6 +116,21 @@ begin
         SendMessage( rx_data_ascii_V );
         SendMessage( rx_data_ascii_W );
         SendMessage( rx_data_ascii_O );
+        SendMessage( rx_data_ascii_enter );
+        
+        en <= '0';
+        
+        SendMessage( rx_data_ascii_H );
+        SendMessage( rx_data_ascii_E );
+        SendMessage( rx_data_ascii_L );
+        SendMessage( rx_data_ascii_L );
+        SendMessage( rx_data_ascii_O );
+        SendMessage( rx_data_ascii_space );
+        SendMessage( rx_data_ascii_W );
+        SendMessage( rx_data_ascii_O );
+        SendMessage( rx_data_ascii_R );
+        SendMessage( rx_data_ascii_L );
+        SendMessage( rx_data_ascii_D );
         SendMessage( rx_data_ascii_enter );
         wait;
 
