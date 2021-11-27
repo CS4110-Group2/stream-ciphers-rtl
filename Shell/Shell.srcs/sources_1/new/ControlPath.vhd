@@ -36,6 +36,7 @@ architecture Behavioral of ControlPath is
     -- shared variable word : StringType := (others => (others => '0'));
     signal i_cnt, i_cnt_next : integer := 0;
 
+    -- ADD constants for mux output choices
     constant SPACE : std_logic_vector(7 downto 0) := x"20";
     constant ENTER : std_logic_vector(7 downto 0) := x"0d";
     constant DELETE : std_logic_vector(7 downto 0) := x"7F";
@@ -102,6 +103,7 @@ begin
                     i_cnt_next <= i_cnt + 1;
                     if i_cnt = 0 then
                         custom_out <= ENTER; 
+                    --TODO Change this to else, to fit with drawing
                     elsif i_cnt = 1 then
                         custom_out <= PROMPT; 
                         state_next <= WaitRx;
