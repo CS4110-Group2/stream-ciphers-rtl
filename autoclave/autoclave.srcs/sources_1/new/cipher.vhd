@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity cipher is
-    Port ( en, load : in STD_LOGIC; 
+    Port ( start : in STD_LOGIC; 
          ascii_r : in STD_LOGIC_VECTOR (7 downto 0);
          key : in STD_LOGIC_VECTOR (7 downto 0);
          cphr_out : out STD_LOGIC_VECTOR (7 downto 0);
@@ -19,7 +19,7 @@ begin
     sdin <= unsigned(ascii_r);
     skey <= unsigned(key);
 
-    sdout <= sdout when en /= '1' or load /= '1' else
+    sdout <= sdout when start /= '1' else
              -- case of space:
              x"20" when ( sdin=x"20" ) else
              -- Encrypting
@@ -36,6 +36,5 @@ begin
              sdin;
 
     cphr_out <= std_logic_vector(sdout);
---    cphr_out <= std_logic_vector(sdout) when sdout >= 0 else std_logic_vector(sdout + 26);
 
 end arch;
