@@ -2,3 +2,6 @@
 *.runs
 *.cache
 *.xpr
+*.str
+*.log
+*.jou

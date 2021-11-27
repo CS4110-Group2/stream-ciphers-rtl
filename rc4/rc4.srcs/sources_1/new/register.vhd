@@ -11,22 +11,22 @@ entity reg is
 end reg;
 
 architecture Behavioral of reg is
-	signal r_reg, r_next : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
+    signal r_reg, r_next : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
 
 begin
-	process (clk, rst, load)
-	begin
-		if (rst = '1') then
-			r_reg <= (others => '0');
-		elsif (rising_edge(clk)) then
-			r_reg <= r_next;
-		end if;
-	end process;
+    process (clk, rst, load)
+    begin
+        if (rst = '1') then
+            r_reg <= (others => '0');
+        elsif (rising_edge(clk)) then
+            r_reg <= r_next;
+        end if;
+    end process;
 
-	r_next <= (others => '0') when clear = '1' else
-			  data_in when load = '1' else
-			  r_reg;
+    r_next <= (others => '0') when clear = '1' else
+              data_in when load = '1' else
+              r_reg;
 
-	data_out <= r_reg;
+    data_out <= r_reg;
 
 end Behavioral;
