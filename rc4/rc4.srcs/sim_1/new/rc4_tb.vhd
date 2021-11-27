@@ -1,40 +1,23 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+use std.env.finish;
 
 entity rc4_tb is
---  Port ( );
 end rc4_tb;
 
 architecture Behavioral of rc4_tb is
 
-component top_level is
-    Port ( clk : in STD_LOGIC;
-           rst : in STD_LOGIC;
-           rx : in STD_LOGIC;
-           tx : out STD_LOGIC);
-end component;
-
 signal clk_tb, rst_tb : STD_LOGIC;
-signal rx_tb, tx_tb : STD_LOGIC;
+signal start_tb, ready_tb, done_tb : STD_LOGIC;
+signal data_in_tb, data_out_tb : STD_LOGIC_VECTOR (7 downto 0);
 
 constant clk_period : time := 10 ns;
-constant bit_period : time := 52083ns; -- time for 1 bit.. 1bit/19200bps = 52.08 us
-constant ascii_a: std_logic_vector(7 downto 0) := x"48"; -- receive a
---constant ascii_a: std_logic_vector(7 downto 0) := x"62"; -- receive b
 
 begin
 
-	UUT: top_level
-	port map (clk => clk_tb, rst => rst_tb, rx => rx_tb, tx => tx_tb);
+	UUT: entity work.top_level(Behavioral)
+	port map (clk => clk_tb, rst => rst_tb, start => start_tb, data_in => data_in_tb,
+	   data_out => data_out_tb, ready => ready_tb, done => done_tb);
 
 	process
 	begin
@@ -46,27 +29,31 @@ begin
 
 	process
 	begin
-		rx_tb <= '1';
-		--wait for clk_period*1000;
-		wait for 20us;
-		rx_tb <= '0';
-		wait for bit_period;
-		for i in 0 to 7 loop
-			rx_tb <= ascii_a(i);
-			wait for bit_period;
-		end loop;
-		rx_tb <= '1';
-
-		wait for 3000us;
-
-		rx_tb <= '0';
-		wait for bit_period;
-		for i in 0 to 7 loop
-			rx_tb <= ascii_a(i);
-			wait for bit_period;
-		end loop;
-		rx_tb <= '1';
-		wait;
+	   wait until ready_tb = '1';
+	   data_in_tb <= x"61"; --a
+	   start_tb <= '1';
+	   wait for clk_period;
+	   start_tb <= '0';
+	   wait until done_tb = '1' for 10*clk_period ;
+	   
+	   assert data_out_tb = x"15"
+	       report "[Fail] Expected: 0x15"
+	       severity failure;
+	   
+	   wait until ready_tb = '1' for 10*clk_period ;
+	   data_in_tb <= x"62"; --b
+	   start_tb <= '1';
+	   wait for clk_period;
+	   start_tb <= '0';
+	   
+	   wait until done_tb = '1' for 10*clk_period ;
+	   
+	   assert data_out_tb = x"8d"
+	       report "[Fail] Expected 0x8D"
+	       severity failure;
+	   
+	   report "Test: OK";
+	   finish;
 	end process;
 
 end Behavioral;

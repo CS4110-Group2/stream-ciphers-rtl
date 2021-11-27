@@ -3,17 +3,16 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity top_level is
-    Port ( clk : in STD_LOGIC;
-           rst : in STD_LOGIC;
-           rx : in STD_LOGIC;
-           tx : out STD_LOGIC);
+    Port ( clk      : in  STD_LOGIC;
+           rst      : in  STD_LOGIC;
+           start    : in  STD_LOGIC;
+           data_in  : in  STD_LOGIC_VECTOR (7 downto 0);
+           data_out : out STD_LOGIC_VECTOR (7 downto 0);
+           ready    : out STD_LOGIC;
+           done     : out STD_LOGIC);
 end top_level;
 
 architecture Behavioral of top_level is
-
-	-- UART signals
-	signal uart_rx_data_out, uart_tx_data_in : STD_LOGIC_VECTOR (7 downto 0);
-	signal s_tick, rx_done, tx_done, tx_start : STD_LOGIC;
 
 	-- Memory signals
 	signal ram_address, rom_address : STD_LOGIC_VECTOR (7 downto 0); --Maybe remove rom address
@@ -36,17 +35,6 @@ architecture Behavioral of top_level is
 
 begin
 
-	mod_m_counter: entity work.mod_m_counter(arch)
-	port map(clk => clk, rst => rst, s_tick => s_tick);
-
-	uart_tx: entity work.uart_tx(arch)
-	port map(clk => clk, rst => rst, tx => tx, s_tick => s_tick,
-		tx_done_tick => tx_done, din => uart_tx_data_in, tx_start => tx_start);
-
-	uart_rx: entity work.uart_rx(arch)
-	port map(clk => clk, rst => rst, rx => rx, s_tick => s_tick,
-		rx_done_tick => rx_done, dout => uart_rx_data_out);
-
 	ram: entity work.ram(Behavioral)
 	port map(clk => clk, rst => rst, write => ram_write, address => ram_address,
 		data_in => reg_tmp_out, data_out => ram_data_out);
@@ -62,19 +50,14 @@ begin
 	port map(clk => clk, rst => rst, load => load_reg_tmp, data_in => reg_tmp_in,
 		data_out => reg_tmp_out, clear => '0');
 
---	reg_k_index: entity work.reg(Behavioral)
---	port map(clk => clk, rst => rst, load => load_reg_k_index,
---			 data_in => keystream_value_index_adder_out, data_out => reg_k_index_out,
---			 clear => '0');
-
 	counter_i: entity work.counter(Behavioral)
 	port map(clk => clk, rst => rst, clear => counter_i_clear, inc => counter_i_inc,
 		q => counter_i_out, max_tick => counter_i_max_tick, load => counter_i_load,
 		data_in => "00000001");
 
 	control_path: entity work.control_path(Behavioral)
-	port map(clk => clk, rst => rst, rx_done => rx_done, tx_done => tx_done,
-			 tx_start => tx_start, counter_i_inc => counter_i_inc,
+	port map(clk => clk, rst => rst, ready => ready, start => start,
+			 done => done, counter_i_inc => counter_i_inc,
 			 counter_i_clear => counter_i_clear, load_reg_j => load_reg_j,
 			 load_reg_tmp => load_reg_tmp, ram_write => ram_write,
 			 ram_address_select => ram_address_select, reg_j_select => reg_j_select,
@@ -86,7 +69,7 @@ begin
 
 	keystream_value_index_adder_out <= STD_LOGIC_VECTOR(unsigned(ram_data_out) + unsigned(reg_tmp_out));
 
-	uart_tx_data_in <= STD_LOGIC_VECTOR(unsigned(uart_rx_data_out) xor unsigned(ram_data_out));
+	data_out <= STD_LOGIC_VECTOR(unsigned(data_in) xor unsigned(ram_data_out));
 
 	-- J Register Multiplexer
 	reg_j_in <= something_adder_out when reg_j_select = '0' else
