@@ -1,21 +1,12 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
 entity control_path is
     Port ( clk                : in  STD_LOGIC;
            rst                : in  STD_LOGIC;
-           rx_done            : in  STD_LOGIC;
-           tx_done            : in  STD_LOGIC;
-           tx_start           : out STD_LOGIC;
+           start              : in  STD_LOGIC;
+           ready              : out  STD_LOGIC;
+           done               : out STD_LOGIC;
            counter_i_max_tick : in  STD_LOGIC;
            counter_i_inc      : out STD_LOGIC;
            counter_i_clear    : out STD_LOGIC;
@@ -30,8 +21,9 @@ entity control_path is
 end control_path;
 
 architecture Behavioral of control_path is
-	type FSM is (s0, s1, s2, s3, s4, s5, s6, s7, s8, s9);
+	type FSM is (s0, s1, s2, s3, s4, s5, s6, s7, s8);
 	signal state_reg, state_next : FSM;
+	signal done_reg : STD_LOGIC;
 
 begin
 
@@ -41,10 +33,12 @@ begin
 			state_reg <= s0;
 		elsif (rising_edge(clk)) then
 			state_reg <= state_next;
+		elsif (falling_edge(clk)) then
+			done <= done_reg;
 		end if;
 	end process;
 
-	process (state_reg, rx_done, tx_done, counter_i_max_tick)
+	process (state_reg, start, counter_i_max_tick)
 	begin
 		state_next       <= state_reg;
 		load_reg_j       <= '0';
@@ -53,7 +47,8 @@ begin
 		counter_i_inc    <= '0';
 		counter_i_clear  <= '0';
 	    counter_i_load   <= '0';
-		tx_start         <= '0';
+		done_reg         <= '0';
+		ready            <= '0';
 		clear_reg_j      <= '0';
 
 		case state_reg is
@@ -90,13 +85,15 @@ begin
 				load_reg_j         <= '1';
 				state_next         <= s1;
 			when s5 =>
-				if (rx_done = '1') then
+				if (start = '1') then
 					ram_address_select <= "00";
 					reg_j_select       <= '0';
 					reg_tmp_select     <= '0';
 					load_reg_j         <= '1';
 					load_reg_tmp       <= '1';
 					state_next         <= s6;
+				else
+					ready <= '1';
 				end if;
 			when s6 =>
 				ram_address_select <= "01";
@@ -112,13 +109,10 @@ begin
 				state_next         <= s8;
 			when s8 =>
 				ram_address_select <= "10";
-				tx_start           <= '1';
-				state_next         <= s9;
-			when s9 =>
-				if (tx_done = '1') then
-					counter_i_inc <= '1';
-					state_next    <= s5;
-				end if;
+				done_reg           <= '1';
+				counter_i_inc      <= '1';
+				ready              <= '1';
+				state_next         <= s5;
 		end case;
 	end process;
 
