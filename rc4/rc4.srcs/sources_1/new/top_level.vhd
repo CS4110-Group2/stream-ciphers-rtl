@@ -6,6 +6,7 @@ entity top_level is
     Port ( clk      : in  STD_LOGIC;
            rst      : in  STD_LOGIC;
            start    : in  STD_LOGIC;
+           clear    : in  STD_LOGIC;
            data_in  : in  STD_LOGIC_VECTOR (7 downto 0);
            data_out : out STD_LOGIC_VECTOR (7 downto 0);
            ready    : out STD_LOGIC;
@@ -58,7 +59,7 @@ architecture Behavioral of top_level is
 
     control_path: entity work.control_path(Behavioral)
     port map(clk => clk, rst => rst, ready => ready, start => start,
-             done => done, counter_i_inc => counter_i_inc,
+             done => done, counter_i_inc => counter_i_inc, clear => clear,
              counter_i_clear => counter_i_clear, load_reg_j => load_reg_j,
              load_reg_tmp => load_reg_tmp, ram_write => ram_write,
              ram_address_select => ram_address_select, reg_j_select => reg_j_select,

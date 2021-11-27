@@ -4,8 +4,9 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity control_path is
     Port ( clk                : in  STD_LOGIC;
            rst                : in  STD_LOGIC;
+           clear              : in  STD_LOGIC;
            start              : in  STD_LOGIC;
-           ready              : out  STD_LOGIC;
+           ready              : out STD_LOGIC;
            done               : out STD_LOGIC;
            counter_i_max_tick : in  STD_LOGIC;
            counter_i_inc      : out STD_LOGIC;
@@ -22,7 +23,7 @@ entity control_path is
 end control_path;
 
 architecture Behavioral of control_path is
-    type FSM is (s0, s1, s2, s3, s4, s5, s6, s7, s8, Init_Ram);
+    type FSM is (s0, s1, s2, s3, s4, s5, s6, s7, s8, Init_Ram, Reset_Cipher);
     signal state_reg, state_next : FSM := Init_Ram;
     signal done_reg : STD_LOGIC;
 
@@ -33,7 +34,11 @@ begin
         if (rst = '1') then
             state_reg <= Init_Ram;
         elsif (rising_edge(clk)) then
-            state_reg <= state_next;
+            if (clear = '1') then
+                state_reg <= Reset_Cipher;
+            else
+                state_reg <= state_next;
+            end if;
         end if;
     end process;
 
@@ -58,6 +63,12 @@ begin
         clear_reg_j      <= '0';
 
         case state_reg is
+            when Reset_Cipher =>
+                counter_i_clear <= '1';
+                clear_reg_j     <= '1';
+                reg_tmp_select  <= '0';
+                reg_j_select    <= '0';
+                state_next      <= Init_Ram;
             when Init_Ram =>
                 if (counter_i_max_tick = '1') then
                     state_next <= s0;
