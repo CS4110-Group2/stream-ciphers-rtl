@@ -66,8 +66,6 @@ begin
             when Reset_Cipher =>
                 counter_i_clear <= '1';
                 clear_reg_j     <= '1';
-                reg_tmp_select  <= '0';
-                reg_j_select    <= '0';
                 state_next      <= Init_Ram;
             when Init_Ram =>
                 if (counter_i_max_tick = '1') then
