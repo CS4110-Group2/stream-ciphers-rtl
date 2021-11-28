@@ -82,9 +82,9 @@ architecture Behavioral of Shell_tb is
     constant input : string := "ATTACK AT DAWN";
     
     --constant rc4_test_input : string := "OK";
-    type ascii_array is array (0 to 1) of std_logic_vector (7 downto 0);
+    type ascii_array is array (0 to 13) of std_logic_vector (7 downto 0);
     
-    constant rc4_cipher : ascii_array := (x"1b", x"84");
+    constant rc4_cipher : ascii_array := (x"35", x"bb", x"56", x"f5", x"19", x"c9", x"17", x"67", x"7b", x"09", x"e6", x"bc", x"6f", x"4c");
     --constant autoclave_cipher : string := "Sxvrgd am wayx";
     constant autoclave_cipher : string := "SXVRGD AM WAYX";
 
@@ -245,6 +245,16 @@ begin
 		readUart(tmp, BITRATE);
 		assert tmp = x"0d"
 		    severity failure;
+		    
+--		readUart(tmp, BITRATE);
+--        assert tmp = x"3e"
+--            severity failure;
+            
+        for i in input'range loop 
+            readUart(tmp, BITRATE);
+            assert tmp = rc4_cipher(i)
+                severity failure;
+		end loop;
 		
 		report "Test: OK";
 	    finish;

@@ -279,7 +279,7 @@ begin
                     state_next     <= Print;
                 end if;
             when HandleAutoclave =>
-                rc4_start <= '1'; -- for testing
+                --rc4_start <= '1'; -- for testing
                 autoclave_start <= '0';
                 output_reg_mux  <= OUTPUT_MUX_AUTOCLAVE;
                 wr_uart         <= '1';

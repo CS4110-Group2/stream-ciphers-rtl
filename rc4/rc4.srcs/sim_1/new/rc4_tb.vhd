@@ -57,7 +57,7 @@ begin
 	   wait for clk_period;
 	   clear_tb <= '0';
 	   
-	   wait until ready_tb = '1';
+	   wait until ready_tb = '1' for 10*clk_period;
 	   data_in_tb <= x"61"; --a
 	   start_tb <= '1';
 	   wait for clk_period;

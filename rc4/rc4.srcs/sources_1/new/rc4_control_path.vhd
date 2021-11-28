@@ -60,11 +60,11 @@ begin
     done <= done_reg;
     ready <= ready_reg;
 
-    process (state_reg, start, counter_i_max_tick)
+    process (state_reg, start, counter_i_max_tick, ready_reg, done_reg)
     begin
         state_next       <= state_reg;
-        done_next        <= done_reg;
-        ready_next        <= ready_reg;
+        done_next        <= '0';
+        ready_next        <= '0';
         load_reg_j       <= '0';
         load_reg_tmp     <= '0';
         ram_write        <= '0';
