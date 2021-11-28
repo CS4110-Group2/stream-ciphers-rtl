@@ -7,7 +7,7 @@ end rc4_tb;
 
 architecture Behavioral of rc4_tb is
 
-signal clk_tb, rst_tb : STD_LOGIC;
+signal clk_tb, rst_tb, clear_tb : STD_LOGIC;
 signal start_tb, ready_tb, done_tb : STD_LOGIC;
 signal data_in_tb, data_out_tb : STD_LOGIC_VECTOR (7 downto 0);
 
@@ -17,7 +17,7 @@ begin
 
 	UUT: entity work.top_level(Behavioral)
 	port map (clk => clk_tb, rst => rst_tb, start => start_tb, data_in => data_in_tb,
-	   data_out => data_out_tb, ready => ready_tb, done => done_tb);
+	   data_out => data_out_tb, ready => ready_tb, done => done_tb, clear => clear_tb);
 
 	process
 	begin
@@ -29,6 +29,7 @@ begin
 
 	process
 	begin
+	   clear_tb <= '0';
 	   wait until ready_tb = '1';
 	   data_in_tb <= x"61"; --a
 	   start_tb <= '1';
@@ -50,6 +51,21 @@ begin
 	   
 	   assert data_out_tb = x"8d"
 	       report "[Fail] Expected 0x8D"
+	       severity failure;
+	       
+	   clear_tb <= '1';
+	   wait for clk_period;
+	   clear_tb <= '0';
+	   
+	   wait until ready_tb = '1';
+	   data_in_tb <= x"61"; --a
+	   start_tb <= '1';
+	   wait for clk_period;
+	   start_tb <= '0';
+	   wait until done_tb = '1' for 10*clk_period ;
+	   
+	   assert data_out_tb = x"15"
+	       report "[Fail] Expected: 0x15"
 	       severity failure;
 	   
 	   report "Test: OK";

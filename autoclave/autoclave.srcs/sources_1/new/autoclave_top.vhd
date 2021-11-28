@@ -9,7 +9,7 @@ entity autoclave is
     );
     port(
         clk, reset: in std_logic;
-        en, load, clr: in std_logic;
+        start, clr: in std_logic;
         ascii_in: in std_logic_vector(7 downto 0);
         ascii_out: out std_logic_vector(7 downto 0);
         switchEncrypt: in std_logic;
@@ -31,13 +31,13 @@ begin
         generic map(ADDR_WIDTH=>RAM_ADDR_WIDTH, DATA_WIDTH=>RAM_DATA_WIDTH )
         port map(
             clk=>clk, reset=>reset,
-            en=>en, load=>load, clr=>clr,
+            start=>start, clr=>clr,
             din=>ascii_k, dout=>key
         );
 
     cipher_unit: entity work.cipher(arch)
         port map(
-            en=>en, load=>load,
+            start=>start,
             ascii_r=>ascii_in, key=>key, encrypt=>switchEncrypt,
             cphr_out=>cphr_out
         );

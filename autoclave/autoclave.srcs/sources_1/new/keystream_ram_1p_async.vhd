@@ -12,7 +12,7 @@ entity keystream_one_port_ram is
     );
     port(
         clk, reset: in std_logic;
-        en, load, clr: in std_logic;
+        start, clr: in std_logic;
         din: in std_logic_vector(DATA_WIDTH-1 downto 0);
         dout: out std_logic_vector(DATA_WIDTH-1 downto 0)
     );
@@ -43,21 +43,19 @@ begin
             if(clr = '1') then
                 addr <= (others=>'0');
                 update_addr <= false;
-            elsif(en = '1') then
-                if(load = '1') then
-                    -- Uppercase
-                    if ( ( din >= x"41" ) and ( din <= x"5A") ) then
-                        ram(to_integer(unsigned(addr) + 6)) <= din;
-                        update_addr <= true;
-                    -- If lowercase ( convert to uppercase )
-                    elsif ( ( din >= x"61" ) and ( din <= x"7A") ) then
-                        ram(to_integer(unsigned(addr) + 6)) <= std_logic_vector( unsigned(din) - x"20" );
-                        update_addr <= true;
-                    end if;
-                elsif(load = '0' and update_addr = true) then
-                    update_addr <= false;
-                    addr <= addr + 1;
+            elsif(start = '1') then
+                -- Uppercase
+                if ( ( din >= x"41" ) and ( din <= x"5A") ) then
+                    ram(to_integer(unsigned(addr) + 6)) <= din;
+                    update_addr <= true;
+                -- If lowercase ( convert to uppercase )
+                elsif ( ( din >= x"61" ) and ( din <= x"7A") ) then
+                    ram(to_integer(unsigned(addr) + 6)) <= std_logic_vector( unsigned(din) - x"20" );
+                    update_addr <= true;
                 end if;
+            elsif(start = '0' and update_addr = true) then
+                update_addr <= false;
+                addr <= addr + 1;
             end if;
         end if;
     end process;

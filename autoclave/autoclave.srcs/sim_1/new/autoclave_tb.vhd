@@ -34,7 +34,7 @@ architecture arch of autoclave_tb is
     
     Component autoclave
         Port ( reset, clk: in std_logic;
-             en, load, clr: in std_logic;
+             start, clr: in std_logic;
              ascii_in: in std_logic_vector(7 downto 0);
              ascii_out: out std_logic_vector(7 downto 0);
              switchEncrypt: in std_logic;
@@ -42,14 +42,14 @@ architecture arch of autoclave_tb is
     end Component;
 
     signal clk, reset: std_logic;
-    signal en, load, clr: std_logic;
+    signal start, clr: std_logic;
     signal switchEncrypt: std_logic;
     signal ascii_in, ascii_out: std_logic_vector(7 downto 0);
 
 begin
     uut: autoclave
         Port Map(clk => clk, reset => reset,
-                 en => en, load => load, clr => clr,
+                 start => start, clr => clr,
                  ascii_in => ascii_in, ascii_out => ascii_out,
                  switchEncrypt=>switchEncrypt );
 
@@ -66,9 +66,9 @@ begin
     begin
         ascii_in <= msg;
         wait for clk_period;
-        load <= '1';
+        start <= '1';
         wait for clk_period;
-        load <= '0';
+        start <= '0';
 --        wait for clk_period;
     end procedure;
     
@@ -79,8 +79,6 @@ begin
         reset <= '0';
         wait for clk_period*2;
         switchEncrypt <='1';
-        wait for clk_period*2;
-        en <= '1';
         wait for clk_period*2;
         SendMessage( rx_data_ascii_H );
         SendMessage( rx_data_ascii_E );
@@ -102,8 +100,6 @@ begin
         clr <= '1';
         wait for clk_period*2;
         clr <= '0';
-        wait for clk_period*2;
-        en <= '1';
         wait for clk_period*2;     
         SendMessage( rx_data_ascii_Z );
         SendMessage( rx_data_ascii_I );
@@ -118,20 +114,6 @@ begin
         SendMessage( rx_data_ascii_O );
         SendMessage( rx_data_ascii_enter );
         
-        en <= '0';
-        
-        SendMessage( rx_data_ascii_H );
-        SendMessage( rx_data_ascii_E );
-        SendMessage( rx_data_ascii_L );
-        SendMessage( rx_data_ascii_L );
-        SendMessage( rx_data_ascii_O );
-        SendMessage( rx_data_ascii_space );
-        SendMessage( rx_data_ascii_W );
-        SendMessage( rx_data_ascii_O );
-        SendMessage( rx_data_ascii_R );
-        SendMessage( rx_data_ascii_L );
-        SendMessage( rx_data_ascii_D );
-        SendMessage( rx_data_ascii_enter );
         wait;
 
     end process;
