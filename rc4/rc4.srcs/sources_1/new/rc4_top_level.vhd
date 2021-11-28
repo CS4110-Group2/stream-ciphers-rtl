@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity top_level is
+entity rc4_top_level is
     Port ( clk      : in  STD_LOGIC;
            rst      : in  STD_LOGIC;
            start    : in  STD_LOGIC;
@@ -11,9 +11,9 @@ entity top_level is
            data_out : out STD_LOGIC_VECTOR (7 downto 0);
            ready    : out STD_LOGIC;
            done     : out STD_LOGIC);
-end top_level;
+end rc4_top_level;
 
-architecture Behavioral of top_level is
+architecture Behavioral of rc4_top_level is
 
     -- Memory signals
     signal ram_address : STD_LOGIC_VECTOR (7 downto 0);
@@ -37,27 +37,27 @@ architecture Behavioral of top_level is
 
     begin
 
-    ram: entity work.ram(Behavioral)
+    ram: entity work.rc4_ram(Behavioral)
     port map(clk => clk, write => ram_write, address => ram_address,
         data_in => ram_data_in, data_out => ram_data_out);
 
-    rom: entity work.rom(Behavioral)
+    rom: entity work.rc4_rom(Behavioral)
     port map(address => counter_i_out, data_out => rom_data_out);
 
-    reg_j: entity work.reg(Behavioral)
+    reg_j: entity work.rc4_reg(Behavioral)
     port map(clk => clk, rst => rst, load => load_reg_j, data_in => reg_j_in,
         data_out => reg_j_out, clear => clear_reg_j);
 
-    reg_tmp: entity work.reg(Behavioral)
+    reg_tmp: entity work.rc4_reg(Behavioral)
     port map(clk => clk, rst => rst, load => load_reg_tmp, data_in => reg_tmp_in,
         data_out => reg_tmp_out, clear => '0');
 
-    counter_i: entity work.counter(Behavioral)
+    counter_i: entity work.rc4_counter(Behavioral)
     port map(clk => clk, rst => rst, clear => counter_i_clear, inc => counter_i_inc,
         q => counter_i_out, max_tick => counter_i_max_tick, load => counter_i_load,
         data_in => "00000001");
 
-    control_path: entity work.control_path(Behavioral)
+    control_path: entity work.rc4_control_path(Behavioral)
     port map(clk => clk, rst => rst, ready => ready, start => start,
              done => done, counter_i_inc => counter_i_inc, clear => clear,
              counter_i_clear => counter_i_clear, load_reg_j => load_reg_j,

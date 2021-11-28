@@ -18,12 +18,18 @@ architecture Behavioral of Shell_tb is
 	signal RsTx : STD_LOGIC;
 	signal seg : STD_LOGIC_VECTOR (7 downto 0);
 	signal an : STD_LOGIC_VECTOR (3 downto 0);
+	signal cipher_select_signal : STD_LOGIC;
+	signal encrypt_decrypt_signal : STD_LOGIC;
+	signal led_signal : STD_LOGIC;
 
 	Component Shell is
 		Port ( clk : in STD_LOGIC;
 			   rst : in STD_LOGIC;
 			   RsRx : in STD_LOGIC;
 			   RsTx : out STD_LOGIC;
+			   cipher_select_signal : in STD_LOGIC;
+			   encrypt_decrypt_signal : in STD_LOGIC;
+			   led_signal : out STD_LOGIC;
 			   seg : out STD_LOGIC_VECTOR (7 downto 0);
 			   an : out STD_LOGIC_VECTOR (3 downto 0));
 	end Component;
@@ -72,20 +78,32 @@ architecture Behavioral of Shell_tb is
 
 	constant BITRATE : integer := 19200;
     
-    constant input : string := "Attack at dawn";
+    --constant input : string := "Attack at dawn";
+    constant input : string := "ATTACK AT DAWN";
+    
+    --constant rc4_test_input : string := "OK";
+    type ascii_array is array (0 to 1) of std_logic_vector (7 downto 0);
+    
+    constant rc4_cipher : ascii_array := (x"1b", x"84");
+    --constant autoclave_cipher : string := "Sxvrgd am wayx";
+    constant autoclave_cipher : string := "SXVRGD AM WAYX";
 
 	signal tmp : std_logic_vector (7 downto 0) := (others => '0');
 	
 	signal reading : std_Logic;
 
 begin
+
 	UUT : Shell
 	port map
 	(
 		clk => clk,
 		rst => rst,
 		RsRx => RsRx,
-		RsTx => RsTx
+		RsTx => RsTx,
+		cipher_select_signal => cipher_select_signal,
+		encrypt_decrypt_signal => encrypt_decrypt_signal,
+		led_signal => led_signal
 	);
 
 
@@ -129,9 +147,13 @@ begin
                 severity failure;
 		end loop;
 		
-		-- Test for LFCR when we send CR (Should have been CRLF)
+        -- Switch to Autoclave cipher and select encrypt 
+        -- Send CR
+		cipher_select_signal <= '0';
+		encrypt_decrypt_signal <= '1';
 		writeUart(x"0d", RsRx, BITRATE);
-		
+
+		-- Test for LFCR after sending CR (Should have been CRLF)
 		readUart(tmp, BITRATE);
 		assert tmp = x"0a"
 		    severity failure;
@@ -139,15 +161,57 @@ begin
 		readUart(tmp, BITRATE);
 		assert tmp = x"0d"
 		    severity failure;
+
+		-- Test Autoclave Encrypt
+		for i in input'range loop 
+            readUart(tmp, BITRATE);
+            assert tmp = std_logic_vector(to_unsigned(character'pos(autoclave_cipher(i)), 8))
+                severity failure;
+		end loop;
+		
+		-- Test for LF, CR and >
+        readUart(tmp, BITRATE);
+        assert tmp = x"0a"
+            severity failure;
+        
+        readUart(tmp, BITRATE);
+        assert tmp = x"0d"
+            severity failure;
+            
+        readUart(tmp, BITRATE);
+        assert tmp = x"3e"
+            severity failure;
+		
+        -- Test for echo
+        for i in input'range loop 
+            writeUart(std_logic_vector(to_unsigned(character'pos(autoclave_cipher(i)), 8)), RsRx, BITRATE);
+            readUart(tmp, BITRATE);
+            assert tmp = std_logic_vector(to_unsigned(character'pos(autoclave_cipher(i)), 8))
+                severity failure;
+		end loop;
+		
+        -- Switch to Autoclave cipher and select encrypt 
+        -- Send CR
+		cipher_select_signal <= '0';
+		encrypt_decrypt_signal <= '0';
+		writeUart(x"0d", RsRx, BITRATE);
+
+		-- Test for LFCR after sending CR (Should have been CRLF)
+		readUart(tmp, BITRATE);
+		assert tmp = x"0a"
+		    severity failure;
 		    
-		-- Test 
+		readUart(tmp, BITRATE);
+		assert tmp = x"0d"
+		    severity failure;
+		
+		-- Test Autoclave Decrypt
 		for i in input'range loop 
             readUart(tmp, BITRATE);
             assert tmp = std_logic_vector(to_unsigned(character'pos(input(i)), 8))
                 severity failure;
 		end loop;
 		
-
 		report "Test: OK";
 	    finish;
 

@@ -2,15 +2,15 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity cipher is
+entity autoclave_cipher is
     Port ( start : in STD_LOGIC; 
          ascii_r : in STD_LOGIC_VECTOR (7 downto 0);
          key : in STD_LOGIC_VECTOR (7 downto 0);
          cphr_out : out STD_LOGIC_VECTOR (7 downto 0);
          encrypt : in STD_LOGIC );
-end cipher;
+end autoclave_cipher;
 
-architecture arch of cipher is
+architecture arch of autoclave_cipher is
     signal sdin:  unsigned (7 downto 0);
     signal skey:  unsigned (7 downto 0);
     signal sdout: unsigned (7 downto 0);

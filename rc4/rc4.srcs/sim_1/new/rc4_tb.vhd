@@ -15,7 +15,7 @@ constant clk_period : time := 10 ns;
 
 begin
 
-	UUT: entity work.top_level(Behavioral)
+	UUT: entity work.rc4_top_level(Behavioral)
 	port map (clk => clk_tb, rst => rst_tb, start => start_tb, data_in => data_in_tb,
 	   data_out => data_out_tb, ready => ready_tb, done => done_tb, clear => clear_tb);
 

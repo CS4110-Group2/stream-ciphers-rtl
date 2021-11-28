@@ -5,38 +5,46 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity ControlPath is
-    Port ( clk : in STD_LOGIC;
-           rst : in STD_LOGIC;
-           rx_done_tick : in STD_LOGIC;
-           wr_uart : out STD_LOGIC;
-           tx_full : in STD_LOGIC;
-           tx_empty : in STD_LOGIC;
-           ram_write : out STD_LOGIC;
-           ram_clr : out STD_LOGIC;
-           ram_data_out : in STD_LOGIC_VECTOR(7 downto 0);
-           addr_cnt_clear : out STD_LOGIC;
-           addr_cnt_en : out STD_LOGIC;
-           addr_cnt_up_down : out STD_LOGIC;
-           addr_cnt_zero : in STD_LOGIC; 
-           opcode_reg_load : out STD_LOGIC;
-           opcode_reg_clear : out STD_LOGIC;
-           output_reg_load : out STD_LOGIC;
-           output_reg_clear : out STD_LOGIC;
-           output_reg_mux : out STD_LOGIC_VECTOR(1 downto 0);
-           ascii_in : in STD_LOGIC_VECTOR (7 downto 0);
-           custom_out : out STD_LOGIC_VECTOR(7 downto 0); 
-           menu_rom_addr_load_val : out STD_LOGIC_VECTOR(7 downto 0);  
-           menu_rom_addr_load_en : out STD_LOGIC;
-           menu_rom_addr : in STD_LOGIC_VECTOR(7 downto 0);
-           menu_rom_addr_inc : out STD_LOGIC;
-           menu_rom_inc_char_cnt : out STD_LOGIC; 
+    Port ( clk                     : in  STD_LOGIC;
+           rst                     : in  STD_LOGIC;
+           rx_done_tick            : in  STD_LOGIC;
+           wr_uart                 : out STD_LOGIC;
+           tx_full                 : in  STD_LOGIC;
+           tx_empty                : in  STD_LOGIC;
+           ram_write               : out STD_LOGIC;
+           ram_clr                 : out STD_LOGIC;
+           ram_data_out            : in  STD_LOGIC_VECTOR(7 downto 0);
+           addr_cnt_clear          : out STD_LOGIC;
+           addr_cnt_en             : out STD_LOGIC;
+           addr_cnt_up_down        : out STD_LOGIC;
+           addr_cnt_zero           : in  STD_LOGIC; 
+           rc4_ready               : in  STD_LOGIC;
+           rc4_done                : in  STD_LOGIC;
+           rc4_start               : out STD_LOGIC;
+           rc4_clear               : out STD_LOGIC;
+           autoclave_clear         : out STD_LOGIC;
+           autoclave_start         : out STD_LOGIC;
+           cipher_select_signal    : in  STD_LOGIC;
+           opcode_reg_load         : out STD_LOGIC;
+           opcode_reg_clear        : out STD_LOGIC;
+           output_reg_load         : out STD_LOGIC;
+           output_reg_clear        : out STD_LOGIC;
+           output_reg_mux          : out STD_LOGIC_VECTOR(2 downto 0);
+           ascii_in                : in  STD_LOGIC_VECTOR (7 downto 0);
+           custom_out              : out STD_LOGIC_VECTOR(7 downto 0); 
+           menu_rom_addr_load_val  : out STD_LOGIC_VECTOR(7 downto 0);  
+           menu_rom_addr_load_en   : out STD_LOGIC;
+           menu_rom_addr           : in  STD_LOGIC_VECTOR(7 downto 0);
+           menu_rom_addr_inc       : out STD_LOGIC;
+           menu_rom_inc_char_cnt   : out STD_LOGIC; 
            menu_rom_clear_char_cnt : out STD_LOGIC;
-           menu_rom_line_done : in STD_LOGIC); 
+           menu_rom_line_done      : in  STD_LOGIC); 
 end ControlPath;
 
 architecture Behavioral of ControlPath is
 
-    type FSM is (Init, HandlePrompt, WaitRx, Print, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP);
+    type FSM is (Init, HandlePrompt, WaitRx, Print, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP,
+                HandleRc4, HandleAutoclave, WaitForRc4);
     signal state_reg, state_next : FSM := Init;
 
     -- type StringType is array(0 to 5) of std_logic_vector(7 downto 0);
@@ -44,26 +52,30 @@ architecture Behavioral of ControlPath is
     signal i_cnt, i_cnt_next : integer := 0;
 
 
-    constant OUTPUT_MUX_INPUT : std_logic_vector(1 downto 0) := "00";
-    constant OUTPUT_MUX_RAM : std_logic_vector(1 downto 0) := "01";
-    constant OUTPUT_MUX_CUSTOM : std_logic_vector(1 downto 0) := "10";
-    constant OUTPUT_MUX_MENUROM : std_logic_vector(1 downto 0) := "11";
+    constant OUTPUT_MUX_INPUT     : std_logic_vector(2 downto 0) := "000";
+    constant OUTPUT_MUX_RC4       : std_logic_vector(2 downto 0) := "001";
+    constant OUTPUT_MUX_CUSTOM    : std_logic_vector(2 downto 0) := "010";
+    constant OUTPUT_MUX_MENUROM   : std_logic_vector(2 downto 0) := "011";
+    constant OUTPUT_MUX_AUTOCLAVE : std_logic_vector(2 downto 0) := "100";
+
+    constant CIPHER_RC4       : std_logic := '1';
+    constant CIPHER_AUTOCLAVE : std_logic := '0';
 
 
     constant HELP_START_ADDRESS : std_logic_vector(7 downto 0) := x"00";
-    constant HELP_STOP_ADDRESS : std_logic_vector(7 downto 0) := x"0E";
+    constant HELP_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"0E";
     -- ADD constants for mux output choices
-    constant SPACE : std_logic_vector(7 downto 0) := x"20";
-    constant ENTER : std_logic_vector(7 downto 0) := x"0d";
-    constant DELETE : std_logic_vector(7 downto 0) := x"7F";
-    constant PROMPT : std_logic_vector(7 downto 0) := x"3e";
-    constant LINEFEED : std_logic_vector(7 downto 0) := x"0A";
-    constant BACKSPACE : std_logic_vector(7 downto 0) := x"08";
-    constant DASH : std_logic_vector(7 downto 0) := x"2D";
+    constant SPACE       : std_logic_vector(7 downto 0) := x"20";
+    constant ENTER       : std_logic_vector(7 downto 0) := x"0d";
+    constant DELETE      : std_logic_vector(7 downto 0) := x"7F";
+    constant PROMPT      : std_logic_vector(7 downto 0) := x"3e";
+    constant LINEFEED    : std_logic_vector(7 downto 0) := x"0A";
+    constant BACKSPACE   : std_logic_vector(7 downto 0) := x"08";
+    constant DASH        : std_logic_vector(7 downto 0) := x"2D";
     constant HELPCOMMAND : std_logic_vector(7 downto 0) := x"68";
 
     constant ASCII_START : std_logic_vector(7 downto 0) := x"21";
-    constant ASCII_STOP : std_logic_vector(7 downto 0) := x"7E";
+    constant ASCII_STOP  : std_logic_vector(7 downto 0) := x"7E";
 
     function ValidAscii( val : std_logic_vector(7 downto 0)) return boolean is
     begin
@@ -90,41 +102,46 @@ begin
         end if;
     end process;
 
-    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt)
+    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_ready, rc4_done)
     begin
-        state_next <= state_reg;
-        wr_uart <= '0';
-        ram_write <= '0';
-        ram_clr <= '0';
-        addr_cnt_clear <= '0';
-        addr_cnt_en <= '0';
-        addr_cnt_up_down <= '0';
-        opcode_reg_load <= '0';
-        opcode_reg_clear <= '0';
-        output_reg_load <= '0';
-        output_reg_clear <= '0';
-        output_reg_mux <= OUTPUT_MUX_INPUT;
-        i_cnt_next <= i_cnt;
-        custom_out <= (others => '0');
-        menu_rom_addr_load_val <= (others => '0');
-        menu_rom_addr_load_en <= '0';
-        menu_rom_addr_inc <= '0';
-        menu_rom_inc_char_cnt <= '0';
+        state_next              <= state_reg;
+        wr_uart                 <= '0';
+        ram_write               <= '0';
+        ram_clr                 <= '0';
+        addr_cnt_clear          <= '0';
+        addr_cnt_en             <= '0';
+        addr_cnt_up_down        <= '0';
+        rc4_start               <= '0';
+        rc4_clear               <= '0';
+        autoclave_clear         <= '0';
+        autoclave_start         <= '0';
+        opcode_reg_load         <= '0';
+        opcode_reg_clear        <= '0';
+        output_reg_load         <= '0';
+        output_reg_clear        <= '0';
+        output_reg_mux          <= OUTPUT_MUX_INPUT;
+        i_cnt_next              <= i_cnt;
+        custom_out              <= (others => '0');
+        menu_rom_addr_load_val  <= (others => '0');
+        menu_rom_addr_load_en   <= '0';
+        menu_rom_addr_inc       <= '0';
+        menu_rom_inc_char_cnt   <= '0';
         menu_rom_clear_char_cnt <= '0';
+
         case state_reg is
             when Init =>
                 -- Reset menu rom address counter and char cnt
-                 menu_rom_addr_load_val <= HELP_START_ADDRESS;
-                 menu_rom_addr_load_en <= '1';
-                 menu_rom_clear_char_cnt <= '1';
-                 state_next <= PrintHelp;
+--                 menu_rom_addr_load_val <= HELP_START_ADDRESS;
+--                 menu_rom_addr_load_en <= '1';
+--                 menu_rom_clear_char_cnt <= '1';
+--                 state_next <= PrintHelp;
 
                 --Skip print help on start
-                -- output_reg_mux <= OUTPUT_MUX_CUSTOM;
-                -- wr_uart <= '1';
-                -- custom_out <= LINEFEED;
-                -- i_cnt_next <= 0;
-                -- state_next <= HandlePrompt;
+                 output_reg_mux <= OUTPUT_MUX_CUSTOM;
+                 wr_uart <= '1';
+                 custom_out <= LINEFEED;
+                 i_cnt_next <= 0;
+                 state_next <= HandlePrompt;
             when HandlePrompt =>
                 if tx_full = '0' then
                     output_reg_mux <= OUTPUT_MUX_CUSTOM;
@@ -165,9 +182,10 @@ begin
                                 state_next <= HandleBackspace;
                             end if;
                         else
-                            wr_uart <= '1';
-                            ram_write <= '1';
-                            addr_cnt_en <= '1';
+                            output_reg_mux <= OUTPUT_MUX_INPUT;
+                            wr_uart        <= '1';
+                            ram_write      <= '1';
+                            addr_cnt_en    <= '1';
                         end if;
                     end if;
                 end if;
@@ -212,16 +230,25 @@ begin
             when Print =>
                 if tx_full = '0' then
                     if ram_data_out = ENTER then
-                        wr_uart <= '1';
-                        output_reg_mux <= OUTPUT_MUX_CUSTOM;
-                        custom_out <= LINEFEED; 
-                        addr_cnt_clear <= '1';
-                        i_cnt_next <= 0;
-                        state_next <= HandlePrompt;
+                        wr_uart          <= '1';
+                        output_reg_mux   <= OUTPUT_MUX_CUSTOM;
+                        custom_out       <= LINEFEED; 
+                        addr_cnt_clear   <= '1';
+                        i_cnt_next       <= 0;
+                        rc4_clear        <= '1';
+                        autoclave_clear  <= '1';
+                        state_next       <= HandlePrompt;
                     else
-                        wr_uart <= '1';
-                        output_reg_mux <= OUTPUT_MUX_RAM;
-                        addr_cnt_en <= '1';
+                        if cipher_select_signal = CIPHER_RC4 then
+                            state_next <= HandleRc4;
+                        else -- CIPHER_AUTOCLAVE
+                            autoclave_start <= '1';
+                            state_next <= HandleAutoclave;
+                        end if;
+
+                        --wr_uart <= '1';
+                        --output_reg_mux <= OUTPUT_MUX_RAM;
+                        --addr_cnt_en <= '1';
                     end if;
                 end if;
             when PrintHelp =>
@@ -242,7 +269,24 @@ begin
                         end if;
                     end if;
                 end if;
-
+            when HandleRc4 =>
+                if rc4_ready = '1' then
+                    rc4_start  <= '1';
+                    state_next <= WaitForRc4;
+                end if;
+            when WaitForRc4 =>
+                if rc4_done = '1' then
+                    output_reg_mux <= OUTPUT_MUX_RC4;
+                    wr_uart        <= '1';
+                    addr_cnt_en    <= '1';
+                    state_next     <= Print;
+                end if;
+            when HandleAutoclave =>
+                autoclave_start <= '0';
+                output_reg_mux  <= OUTPUT_MUX_AUTOCLAVE;
+                wr_uart         <= '1';
+                addr_cnt_en     <= '1';
+                state_next      <= Print;
 
             when STOP =>
         end case;

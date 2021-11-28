@@ -5,12 +5,15 @@ use IEEE.NUMERIC_STD.ALL;
 
 
 entity Shell is
-    Port ( clk : in STD_LOGIC;
-           rst : in STD_LOGIC;
-           RsRx : in STD_LOGIC;
-           RsTx : out STD_LOGIC;
-           seg : out STD_LOGIC_VECTOR (7 downto 0);
-           an : out STD_LOGIC_VECTOR (3 downto 0));
+    Port ( clk                    : in  STD_LOGIC;
+           rst                    : in  STD_LOGIC;
+           RsRx                   : in  STD_LOGIC;
+           RsTx                   : out STD_LOGIC;
+           cipher_select_signal   : in  STD_LOGIC;
+           encrypt_decrypt_signal : in  STD_LOGIC;
+           led_signal             : out STD_LOGIC;
+           seg                    : out STD_LOGIC_VECTOR (7 downto 0);
+           an                     : out STD_LOGIC_VECTOR (3 downto 0));
 end Shell;
 
 architecture Behavioral of Shell is
@@ -33,7 +36,7 @@ architecture Behavioral of Shell is
 
     signal output_reg_in, output_reg_out : std_logic_vector(7 downto 0);
     signal output_reg_load, output_reg_clear : std_logic;
-    signal output_reg_mux : std_logic_vector(1 downto 0);
+    signal output_reg_mux : std_logic_vector(2 downto 0);
 
     signal custom_out : std_logic_vector(7 downto 0);
 
@@ -45,6 +48,15 @@ architecture Behavioral of Shell is
     signal menu_rom_inc_char_cnt : STD_LOGIC; 
     signal menu_rom_clear_char_cnt : STD_LOGIC;
     signal menu_rom_line_done : STD_LOGIC; 
+
+    -- RC4 Cipher
+    signal rc4_data_in, rc4_data_out                 : std_logic_vector (7 downto 0);
+    signal rc4_clear, rc4_ready, rc4_done, rc4_start : std_logic;
+
+    -- AutoClave Cipher
+    signal autoclave_data_in, autoclave_data_out : std_logic_vector (7 downto 0);
+    signal autoclave_start, autoclave_clear      : std_logic;
+    signal autoclave_encryption_led              : std_logic;
     
 begin
 
@@ -54,10 +66,14 @@ begin
 
     opcode_reg_in <= ram_data_out;
 
-    ascii_out <= ascii_in when output_reg_mux = "00" else
-                 ram_data_out when output_reg_mux = "01" else
-                 custom_out when output_reg_mux = "10" else
-                 menu_rom_data_out;
+    rc4_data_in       <= ram_data_out;
+    autoclave_data_in <= ram_data_out;
+
+    ascii_out <= ascii_in          when output_reg_mux = "000" else
+                 rc4_data_out      when output_reg_mux = "001" else
+                 custom_out        when output_reg_mux = "010" else
+                 menu_rom_data_out when output_reg_mux = "011" else
+                 autoclave_data_out;
 
     control : entity work.ControlPath(Behavioral)
     port map
@@ -85,10 +101,17 @@ begin
         menu_rom_addr_load_val => menu_rom_addr_load_val,
         menu_rom_addr_load_en => menu_rom_addr_load_en,
         menu_rom_addr => menu_rom_addr,
-        menu_rom_addr_inc => menu_rom_addr_inc,
-        menu_rom_inc_char_cnt => menu_rom_inc_char_cnt,
+        menu_rom_addr_inc       => menu_rom_addr_inc,
+        menu_rom_inc_char_cnt   => menu_rom_inc_char_cnt,
         menu_rom_clear_char_cnt => menu_rom_clear_char_cnt,
-        menu_rom_line_done => menu_rom_line_done 
+        menu_rom_line_done      => menu_rom_line_done,
+        rc4_start               => rc4_start,
+        rc4_done                => rc4_done,
+        rc4_clear               => rc4_clear,
+        rc4_ready               => rc4_ready,
+        autoclave_start         => autoclave_start,
+        autoclave_clear         => autoclave_clear,
+        cipher_select_signal    => cipher_select_signal
     );
 
 
@@ -215,6 +238,32 @@ begin
         rst => rst,
         seg => seg,
         an => an
+    );
+
+    rc4: entity work.rc4_top_level(Behavioral)
+    port map
+    (
+        clk      => clk,
+        rst      => rst,
+        data_in  => rc4_data_in,
+        data_out => rc4_data_out,
+        start    => rc4_start,
+        ready    => rc4_ready,
+        done     => rc4_done,
+        clear    => rc4_clear
+    );
+
+    autoclave: entity work.autoclave_top_level(str_arch)
+    port map
+    (
+        clk => clk,
+        reset => rst,
+        start => autoclave_start,
+        clr   => autoclave_clear,
+        ascii_in => autoclave_data_in,
+        ascii_out => autoclave_data_out,
+        switchEncrypt => encrypt_decrypt_signal,
+        ledEncrypt    => led_signal
     );
 
 end Behavioral;

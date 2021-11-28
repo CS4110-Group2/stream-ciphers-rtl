@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-entity control_path is
+entity rc4_control_path is
     Port ( clk                : in  STD_LOGIC;
            rst                : in  STD_LOGIC;
            clear              : in  STD_LOGIC;
@@ -20,9 +20,9 @@ entity control_path is
            reg_tmp_select     : out STD_LOGIC;
            ram_data_in_select : out STD_LOGIC;
            reg_j_select       : out STD_LOGIC);
-end control_path;
+end rc4_control_path;
 
-architecture Behavioral of control_path is
+architecture Behavioral of rc4_control_path is
     type FSM is (s0, s1, s2, s3, s4, s5, s6, s7, s8, Init_Ram, Reset_Cipher);
     signal state_reg, state_next : FSM := Init_Ram;
     signal done_reg : STD_LOGIC;

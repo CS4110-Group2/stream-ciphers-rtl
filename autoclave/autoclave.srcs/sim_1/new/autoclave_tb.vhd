@@ -32,7 +32,7 @@ architecture arch of autoclave_tb is
     constant rx_data_ascii_W: std_logic_vector(7 downto 0) := x"57"; -- receive W
     constant rx_data_ascii_Z: std_logic_vector(7 downto 0) := x"5A"; -- receive Z
     
-    Component autoclave
+    Component autoclave_top_level
         Port ( reset, clk: in std_logic;
              start, clr: in std_logic;
              ascii_in: in std_logic_vector(7 downto 0);
@@ -47,7 +47,7 @@ architecture arch of autoclave_tb is
     signal ascii_in, ascii_out: std_logic_vector(7 downto 0);
 
 begin
-    uut: autoclave
+    uut: autoclave_top_level
         Port Map(clk => clk, reset => reset,
                  start => start, clr => clr,
                  ascii_in => ascii_in, ascii_out => ascii_out,

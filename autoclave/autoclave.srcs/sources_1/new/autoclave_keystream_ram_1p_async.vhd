@@ -5,7 +5,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity keystream_one_port_ram is
+entity autoclave_keystream_one_port_ram is
     generic(
         ADDR_WIDTH: integer:=10; -- 1KB RAM
         DATA_WIDTH: integer:=8
@@ -16,9 +16,9 @@ entity keystream_one_port_ram is
         din: in std_logic_vector(DATA_WIDTH-1 downto 0);
         dout: out std_logic_vector(DATA_WIDTH-1 downto 0)
     );
-end keystream_one_port_ram;
+end autoclave_keystream_one_port_ram;
 
-architecture arch of keystream_one_port_ram is
+architecture arch of autoclave_keystream_one_port_ram is
     type ram_type is array (2**(ADDR_WIDTH - 5)-1 downto 0)
  of std_logic_vector (DATA_WIDTH-1 downto 0);
     signal ram: ram_type;

@@ -2,15 +2,15 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity ram is
+entity rc4_ram is
     Port ( data_in  : in  STD_LOGIC_VECTOR (7 downto 0);
            data_out : out STD_LOGIC_VECTOR (7 downto 0);
            address  : in  STD_LOGIC_VECTOR (7 downto 0);
            clk      : in  STD_LOGIC;
            write    : in  STD_LOGIC);
-end ram;
+end rc4_ram;
 
-architecture Behavioral of ram is
+architecture Behavioral of rc4_ram is
 
     type mem is array (0 to 255) of STD_LOGIC_VECTOR (7 downto 0);
     signal ram : mem := (others => (others => '0'));
