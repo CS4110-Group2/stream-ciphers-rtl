@@ -22,13 +22,14 @@ entity ControlPath is
            rc4_done                : in  STD_LOGIC;
            rc4_start               : out STD_LOGIC;
            rc4_clear               : out STD_LOGIC;
+           rc4_input_mux           : out STD_LOGIC;
            autoclave_clear         : out STD_LOGIC;
            autoclave_start         : out STD_LOGIC;
            cipher_select_signal    : in  STD_LOGIC;
            opcode_reg_load         : out STD_LOGIC;
            opcode_reg_clear        : out STD_LOGIC;
-           output_reg_load         : out STD_LOGIC;
-           output_reg_clear        : out STD_LOGIC;
+           hex_reg_load            : out STD_LOGIC;
+           hex_reg_clear           : out STD_LOGIC;
            output_reg_mux          : out STD_LOGIC_VECTOR(2 downto 0);
            ascii_in                : in  STD_LOGIC_VECTOR (7 downto 0);
            custom_out              : out STD_LOGIC_VECTOR(7 downto 0); 
@@ -44,17 +45,23 @@ end ControlPath;
 
 architecture Behavioral of ControlPath is
 
-    type FSM is (Init, HandlePrompt, WaitRx, Print, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP, HandleRc4, HandleAutoclave, WaitForRc4);
+    type FSM is (Init, HandlePrompt, WaitRx, Print, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP, HandleRc4Encrypt, HandleRc4Decrypt, HandleAutoclave, WaitForRc4);
     signal state_reg, state_next : FSM := Init;
 
     signal i_cnt, i_cnt_next : integer := 0;
 
 
     constant OUTPUT_MUX_INPUT     : std_logic_vector(2 downto 0) := "000";
-    constant OUTPUT_MUX_RC4       : std_logic_vector(2 downto 0) := "001";
+    constant OUTPUT_MUX_RC4_ASCII : std_logic_vector(2 downto 0) := "001";
+    constant OUTPUT_MUX_RC4_HEX   : std_logic_vector(2 downto 0) := "110";
     constant OUTPUT_MUX_CUSTOM    : std_logic_vector(2 downto 0) := "010";
     constant OUTPUT_MUX_MENUROM   : std_logic_vector(2 downto 0) := "011";
     constant OUTPUT_MUX_AUTOCLAVE : std_logic_vector(2 downto 0) := "100";
+
+    constant ENCRYPT : std_logic := '0';
+    constant DECRYPT : std_logic := '1';
+    constant RC4_INPUT_MUX_ASCII : std_logic := '0';
+    constant RC4_INPUT_MUX_HEX : std_logic := '1';
 
     constant CIPHER_RC4       : std_logic := '1';
     constant CIPHER_AUTOCLAVE : std_logic := '0';
@@ -99,7 +106,7 @@ begin
         end if;
     end process;
 
-    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_ready, rc4_done, encrypt_decrypt)
+    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_ready, rc4_done, encrypt_decrypt, addr_cnt_zero, cipher_select_signal)
     begin
         state_next              <= state_reg;
         wr_uart                 <= '0';
@@ -110,12 +117,13 @@ begin
         addr_cnt_up_down        <= '0';
         rc4_start               <= '0';
         rc4_clear               <= '0';
+        rc4_input_mux           <= RC4_INPUT_MUX_ASCII;
         autoclave_clear         <= '0';
         autoclave_start         <= '0';
         opcode_reg_load         <= '0';
         opcode_reg_clear        <= '0';
-        output_reg_load         <= '0';
-        output_reg_clear        <= '0';
+        hex_reg_load            <= '0';
+        hex_reg_clear           <= '0';
         output_reg_mux          <= OUTPUT_MUX_INPUT;
         i_cnt_next              <= i_cnt;
         custom_out              <= (others => '0');
@@ -237,7 +245,13 @@ begin
                         state_next       <= HandlePrompt;
                     else
                         if cipher_select_signal = CIPHER_RC4 then
-                            state_next <= HandleRc4;
+                            if encrypt_decrypt = ENCRYPT then
+                                state_next <= HandleRc4Encrypt;
+                            else
+                                hex_reg_load <= '1';
+                                addr_cnt_en <= '1';
+                                state_next <= HandleRc4Decrypt;
+                            end if;
                         else -- CIPHER_AUTOCLAVE
                             autoclave_start <= '1';
                             state_next <= HandleAutoclave;
@@ -266,14 +280,23 @@ begin
                         end if;
                     end if;
                 end if;
-            when HandleRc4 =>
+            when HandleRc4Encrypt =>
+                if rc4_ready = '1' then
+                    if encrypt_decrypt = DECRYPT;
+                        rc4_input_mux <= RC4_INPUT_MUX_HEX;
+                    end if;
+
+                    rc4_start  <= '1';
+                    state_next <= WaitForRc4;
+                end if;
+            when HandleRc4Decrypt =>
                 if rc4_ready = '1' then
                     rc4_start  <= '1';
                     state_next <= WaitForRc4;
                 end if;
             when WaitForRc4 =>
                 if rc4_done = '1' then
-                    output_reg_mux <= OUTPUT_MUX_RC4;
+                    output_reg_mux <= OUTPUT_MUX_RC4_ASCII;
                     wr_uart        <= '1';
                     addr_cnt_en    <= '1';
                     state_next     <= Print;

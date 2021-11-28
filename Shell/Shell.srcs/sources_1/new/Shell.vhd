@@ -34,8 +34,6 @@ architecture Behavioral of Shell is
     signal opcode_reg_in, opcode_reg_out : std_logic_vector(7 downto 0);
     signal opcode_reg_load, opcode_reg_clear : std_logic;
 
-    signal output_reg_in, output_reg_out : std_logic_vector(7 downto 0);
-    signal output_reg_load, output_reg_clear : std_logic;
     signal output_reg_mux : std_logic_vector(2 downto 0);
 
     signal custom_out : std_logic_vector(7 downto 0);
@@ -52,13 +50,29 @@ architecture Behavioral of Shell is
     -- RC4 Cipher
     signal rc4_data_in, rc4_data_out                 : std_logic_vector (7 downto 0);
     signal rc4_clear, rc4_ready, rc4_done, rc4_start : std_logic;
+    signal rc4_input_mux : std_logic;
 
     -- AutoClave Cipher
     signal autoclave_data_in, autoclave_data_out : std_logic_vector (7 downto 0);
     signal autoclave_start, autoclave_clear      : std_logic;
     signal autoclave_encryption_led              : std_logic;
+
+    --hex to ascii/ascii to hex
+    signal hex_to_ascii_lsb_in : std_logic_vector(7 downto 0);
+    signal hex_to_ascii_msb_in : std_logic_vector(7 downto 0);
+    signal hex_to_ascii_out : std_logic_vector(7 downto 0);
+    signal ascii_to_hex_in : std_logic_vector(7 downto 0);
+    signal ascii_to_hex_out : std_logic_vector(7 downto 0);
+    signal ascii_to_hex_lsb_msb : std_logic;
+    signal hex_reg_in, hex_reg_out : std_logic_vector(7 downto 0);
+    signal hex_reg_load, hex_reg_clear : std_logic;
+
     
 begin
+    hex_reg_in <= ram_data_out;
+    hex_to_ascii_msb_in <= hex_reg_out;
+    hex_to_ascii_lsb_in <= ram_data_out;
+
 
     ram_data_in <= ascii_in;
 
@@ -66,7 +80,9 @@ begin
 
     opcode_reg_in <= ram_data_out;
 
-    rc4_data_in       <= ram_data_out;
+    rc4_data_in       <= ram_data_out when rc4_input_mux = '0' else
+                         hex_to_ascii_out;
+
     autoclave_data_in <= ram_data_out;
 
     ascii_out <= ascii_in          when output_reg_mux = "000" else
@@ -74,6 +90,8 @@ begin
                  custom_out        when output_reg_mux = "010" else
                  menu_rom_data_out when output_reg_mux = "011" else
                  autoclave_data_out;
+
+
 
     control : entity work.ControlPath(Behavioral)
     port map
@@ -93,8 +111,8 @@ begin
         addr_cnt_zero => addr_cnt_zero,
         opcode_reg_load => opcode_reg_load,
         opcode_reg_clear => opcode_reg_clear,
-        output_reg_load => output_reg_load,
-        output_reg_clear => output_reg_clear,
+        hex_reg_load => hex_reg_load,
+        hex_reg_clear => hex_reg_clear,
         output_reg_mux => output_reg_mux,
         ascii_in => ascii_in,
         custom_out => custom_out,
@@ -109,6 +127,7 @@ begin
         rc4_done                => rc4_done,
         rc4_clear               => rc4_clear,
         rc4_ready               => rc4_ready,
+        rc4_input_mux           => rc4_input_mux,
         autoclave_start         => autoclave_start,
         autoclave_clear         => autoclave_clear,
         cipher_select_signal    => cipher_select_signal,
@@ -215,7 +234,8 @@ begin
         data_in => opcode_reg_in,
         data_out => opcode_reg_out
     );
-    out_reg : entity work.Reg(Behavioral)
+
+    hex_temp_reg : entity work.Reg(Behavioral)
     generic map
     (
         SIZE => 8
@@ -224,10 +244,26 @@ begin
     (
         clk => clk,
         rst => rst,
-        load => output_reg_load,
-        clear => output_reg_clear,
-        data_in => output_reg_in,
-        data_out => output_reg_out
+        load => hex_reg_load,
+        clear => hex_reg_clear,
+        data_in => hex_reg_in,
+        data_out => hex_reg_out
+    );
+
+    hex_to_ascii : entity work.HexToAscii(Behavioral)
+    Port map
+    (
+        hex_lsb => hex_to_ascii_lsb_in,
+        hex_msb => hex_to_ascii_msb_in,
+        ascii => hex_to_ascii_out
+    );
+
+    ascii_to_hex : entity work.AsciiToHex(Behavioral)
+    Port map
+    (
+        ascii => ascii_to_hex_in,
+        hex => ascii_to_hex_out,
+        lsb_msb => ascii_to_hex_lsb_msb
     );
 
     display: entity work.SixteenBitDisplay(Behavioral)
