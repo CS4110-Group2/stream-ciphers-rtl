@@ -90,7 +90,7 @@ begin
         end if;
     end process;
 
-    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out)
+    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt)
     begin
         state_next <= state_reg;
         wr_uart <= '0';
@@ -119,7 +119,12 @@ begin
                  menu_rom_clear_char_cnt <= '1';
                  state_next <= PrintHelp;
 
-                -- state_next <= WaitRx;
+                --Skip print help on start
+                -- output_reg_mux <= OUTPUT_MUX_CUSTOM;
+                -- wr_uart <= '1';
+                -- custom_out <= LINEFEED;
+                -- i_cnt_next <= 0;
+                -- state_next <= HandlePrompt;
             when HandlePrompt =>
                 if tx_full = '0' then
                     output_reg_mux <= OUTPUT_MUX_CUSTOM;
