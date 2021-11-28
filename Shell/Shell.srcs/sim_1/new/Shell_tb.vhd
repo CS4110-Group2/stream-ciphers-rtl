@@ -190,8 +190,7 @@ begin
                 severity failure;
 		end loop;
 		
-        -- Switch to Autoclave cipher and select encrypt 
-        -- Send CR
+        -- Switch to decrypt and send CR
 		cipher_select_signal <= '0';
 		encrypt_decrypt_signal <= '0';
 		writeUart(x"0d", RsRx, BITRATE);
@@ -211,6 +210,41 @@ begin
             assert tmp = std_logic_vector(to_unsigned(character'pos(input(i)), 8))
                 severity failure;
 		end loop;
+		
+		-- Test for LF, CR and >
+        readUart(tmp, BITRATE);
+        assert tmp = x"0a"
+            severity failure;
+        
+        readUart(tmp, BITRATE);
+        assert tmp = x"0d"
+            severity failure;
+            
+        readUart(tmp, BITRATE);
+        assert tmp = x"3e"
+            severity failure;
+		
+		-- Test for echo
+        for i in input'range loop 
+            writeUart(std_logic_vector(to_unsigned(character'pos(input(i)), 8)), RsRx, BITRATE);
+            readUart(tmp, BITRATE);
+            assert tmp = std_logic_vector(to_unsigned(character'pos(input(i)), 8))
+                severity failure;
+		end loop;
+		
+        -- Switch to RC4 and send CR
+		cipher_select_signal <= '1';
+		--encrypt_decrypt_signal <= '0';
+		writeUart(x"0d", RsRx, BITRATE);
+
+		-- Test for LFCR after sending CR (Should have been CRLF)
+		readUart(tmp, BITRATE);
+		assert tmp = x"0a"
+		    severity failure;
+		    
+		readUart(tmp, BITRATE);
+		assert tmp = x"0d"
+		    severity failure;
 		
 		report "Test: OK";
 	    finish;

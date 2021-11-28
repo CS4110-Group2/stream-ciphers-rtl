@@ -99,7 +99,7 @@ begin
         end if;
     end process;
 
-    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_ready, rc4_done, encrypt_decrypt)
+    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_done, rc4_ready, encrypt_decrypt, cipher_select_signal, addr_cnt_zero)
     begin
         state_next              <= state_reg;
         wr_uart                 <= '0';
@@ -279,6 +279,7 @@ begin
                     state_next     <= Print;
                 end if;
             when HandleAutoclave =>
+                rc4_start <= '1'; -- for testing
                 autoclave_start <= '0';
                 output_reg_mux  <= OUTPUT_MUX_AUTOCLAVE;
                 wr_uart         <= '1';

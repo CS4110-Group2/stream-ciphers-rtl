@@ -23,21 +23,29 @@ entity rc4_control_path is
 end rc4_control_path;
 
 architecture Behavioral of rc4_control_path is
+--    type FSM is (s0, s1, s2, s3, s4, s5, s6, s7, s8, Init_Ram, Reset_Cipher, s9);
     type FSM is (s0, s1, s2, s3, s4, s5, s6, s7, s8, Init_Ram, Reset_Cipher);
     signal state_reg, state_next : FSM := Init_Ram;
-    signal done_reg : STD_LOGIC;
+--    signal done_reg : STD_LOGIC;
+    signal ready_reg, ready_next : STD_LOGIC := '0';
+    signal done_reg, done_next   : STD_LOGIC := '0';
 
 begin
+
+    
 
     process (clk, rst)
     begin
         if (rst = '1') then
             state_reg <= Init_Ram;
+            ready_reg <= '0';
         elsif (rising_edge(clk)) then
             if (clear = '1') then
                 state_reg <= Reset_Cipher;
             else
                 state_reg <= state_next;
+                ready_reg <= ready_next;
+                
             end if;
         end if;
     end process;
@@ -45,21 +53,24 @@ begin
     process (clk)
     begin
         if (falling_edge(clk)) then
-            done <= done_reg;
+            done_reg  <= done_next;
         end if;
     end process;
+
+    done <= done_reg;
+    ready <= ready_reg;
 
     process (state_reg, start, counter_i_max_tick)
     begin
         state_next       <= state_reg;
+        done_next        <= done_reg;
+        ready_next        <= ready_reg;
         load_reg_j       <= '0';
         load_reg_tmp     <= '0';
         ram_write        <= '0';
         counter_i_inc    <= '0';
         counter_i_clear  <= '0';
         counter_i_load   <= '0';
-        done_reg         <= '0';
-        ready            <= '0';
         clear_reg_j      <= '0';
 
         case state_reg is
@@ -116,7 +127,7 @@ begin
                     load_reg_tmp       <= '1';
                     state_next         <= s6;
                 else
-                    ready <= '1';
+                    ready_next <= '1';
                 end if;
             when s6 =>
                 ram_address_select <= "01";
@@ -132,10 +143,17 @@ begin
                 state_next         <= s8;
             when s8 =>
                 ram_address_select <= "10";
-                done_reg           <= '1';
+                done_next           <= '1';
+                --done               <= '1';
                 counter_i_inc      <= '1';
-                ready              <= '1';
+                ready_next         <= '1';
                 state_next         <= s5;
+--                done_next <= '1';
+--                ready_next <= '1';
+                --state_next <= s9;
+--            when s9 =>
+--                counter_i_inc <= '1';
+--                state_next <= s5;
         end case;
     end process;
 
