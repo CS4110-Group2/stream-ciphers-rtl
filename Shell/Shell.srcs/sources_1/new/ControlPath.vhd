@@ -60,7 +60,7 @@ architecture Behavioral of ControlPath is
     constant CIPHER_AUTOCLAVE : std_logic := '0';
 
     constant HELP_START_ADDRESS : std_logic_vector(7 downto 0) := x"00";
-    constant HELP_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"0E";
+    constant HELP_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"10";
 
     constant SPACE       : std_logic_vector(7 downto 0) := x"20";
     constant ENTER       : std_logic_vector(7 downto 0) := x"0d";
@@ -127,18 +127,18 @@ begin
 
         case state_reg is
             when Init =>
-                -- Reset menu rom address counter and char cnt
---                 menu_rom_addr_load_val <= HELP_START_ADDRESS;
---                 menu_rom_addr_load_en <= '1';
---                 menu_rom_clear_char_cnt <= '1';
---                 state_next <= PrintHelp;
+--                 Reset menu rom address counter and char cnt
+                 menu_rom_addr_load_val <= HELP_START_ADDRESS;
+                 menu_rom_addr_load_en <= '1';
+                 menu_rom_clear_char_cnt <= '1';
+                 state_next <= PrintHelp;
 
                 --Skip print help on start
-                 output_reg_mux <= OUTPUT_MUX_CUSTOM;
-                 wr_uart <= '1';
-                 custom_out <= LINEFEED;
-                 i_cnt_next <= 0;
-                 state_next <= HandlePrompt;
+--                 output_reg_mux <= OUTPUT_MUX_CUSTOM;
+--                 wr_uart <= '1';
+--                 custom_out <= LINEFEED;
+--                 i_cnt_next <= 0;
+--                 state_next <= HandlePrompt;
             when HandlePrompt =>
                 if tx_full = '0' then
                     output_reg_mux <= OUTPUT_MUX_CUSTOM;
