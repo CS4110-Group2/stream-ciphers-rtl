@@ -81,6 +81,15 @@ begin
 		wait for clk_period*4;
 		rst <= '0';
 		wait for clk_period*4;
+		-- wait for 375 ms;
+		writeUart( x"7F", RsRx, BITRATE);
+		writeUart( x"7F", RsRx, BITRATE);
+		writeUart( x"7F", RsRx, BITRATE);
+
+		writeUart( x"2d", RsRx, BITRATE);
+		writeUart( x"68", RsRx, BITRATE);
+		writeUart( x"0d", RsRx, BITRATE);
+
 
         for i in input'range loop 
             writeUart(std_logic_vector(to_unsigned(character'pos(input(i)), 8)), RsRx, BITRATE);

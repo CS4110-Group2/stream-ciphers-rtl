@@ -1,0 +1,15 @@
+\n
+StreamCipher Project 1.1
+By V.Bodahl, K.Odde, S.Onarheim and S.Rudin
+\n
+CipherSelection:
+	Autoclave: SW1 - High
+	RC4:       SW1 - Low
+\n
+Encrypt/Deprypt
+	Encrypt:   SW2 - High
+	Decrypt:   SW2 - Low
+\n
+Help
+	-h
+\n

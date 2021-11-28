@@ -36,6 +36,15 @@ architecture Behavioral of Shell is
     signal output_reg_mux : std_logic_vector(1 downto 0);
 
     signal custom_out : std_logic_vector(7 downto 0);
+
+    signal menu_rom_data_out : std_logic_vector(7 downto 0);
+    signal menu_rom_addr : std_logic_vector(7 downto 0);
+    signal menu_rom_addr_load_val : STD_LOGIC_VECTOR(7 downto 0);  
+    signal menu_rom_addr_load_en : STD_LOGIC;
+    signal menu_rom_addr_inc : STD_LOGIC;
+    signal menu_rom_inc_char_cnt : STD_LOGIC; 
+    signal menu_rom_clear_char_cnt : STD_LOGIC;
+    signal menu_rom_line_done : STD_LOGIC; 
     
 begin
 
@@ -47,11 +56,8 @@ begin
 
     ascii_out <= ascii_in when output_reg_mux = "00" else
                  ram_data_out when output_reg_mux = "01" else
-                 custom_out;
-
-                 -- x"20" when output_reg_mux = "001" else
-                 -- x"08" when output_reg_mux = "010" else
-                 -- x"7F" when output_reg_mux = ";
+                 custom_out when output_reg_mux = "10" else
+                 menu_rom_data_out;
 
     control : entity work.ControlPath(Behavioral)
     port map
@@ -75,7 +81,50 @@ begin
         output_reg_clear => output_reg_clear,
         output_reg_mux => output_reg_mux,
         ascii_in => ascii_in,
-        custom_out => custom_out
+        custom_out => custom_out,
+        menu_rom_addr_load_val => menu_rom_addr_load_val,
+        menu_rom_addr_load_en => menu_rom_addr_load_en,
+        menu_rom_addr => menu_rom_addr,
+        menu_rom_addr_inc => menu_rom_addr_inc,
+        menu_rom_inc_char_cnt => menu_rom_inc_char_cnt,
+        menu_rom_clear_char_cnt => menu_rom_clear_char_cnt,
+        menu_rom_line_done => menu_rom_line_done 
+    );
+
+
+    menuRom : entity work.StringRom(Behavioral)
+    Generic Map
+    (
+        AddrSize => 8,
+        DataSize => 50
+    )
+    Port Map
+    (
+        clk => clk,
+        addr => menu_rom_addr,
+        dataOut => menu_rom_data_out,
+        inc_char_cnt => menu_rom_inc_char_cnt,
+        clear_char_cnt => menu_rom_clear_char_cnt,
+        line_done => menu_rom_line_done
+    );
+
+
+    menu_rom_addr_counter : entity work.ModMCounterEn(Behavioral)
+    generic map
+    ( 
+        N => 8, 
+        M => (2**8-1)
+    )
+    port map
+    (
+        en => menu_rom_addr_inc,
+        rst => rst,
+        clk => clk,
+        clr => '0',
+        data_in => menu_rom_addr_load_val,
+        load_en => menu_rom_addr_load_en,
+        q => menu_rom_addr,
+        max_tick => open
     );
     
 

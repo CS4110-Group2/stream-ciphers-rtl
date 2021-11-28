@@ -12,6 +12,8 @@ entity ModMCounterEn is
            rst : in STD_LOGIC;
            clk : in STD_LOGIC;
            clr : in STD_LOGIC;
+           data_in : in STD_LOGIC_VECTOR(N-1 downto 0); 
+           load_en : in STD_LOGIC;
            q : out STD_LOGIC_VECTOR (N-1 downto 0);
            max_tick : out STD_LOGIC);
 end ModMCounterEn;
@@ -27,7 +29,9 @@ begin
         if rst = '1' then
             state_reg <= (others => '0');
         elsif(rising_edge(clk)) then
-            if(en = '1') then
+            if(load_en = '1') then
+                state_reg <= unsigned(data_in);
+            elsif(en = '1') then
                 state_reg <= state_next;
             end if;
         end if;

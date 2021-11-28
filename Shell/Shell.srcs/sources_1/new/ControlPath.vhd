@@ -24,18 +24,34 @@ entity ControlPath is
            output_reg_clear : out STD_LOGIC;
            output_reg_mux : out STD_LOGIC_VECTOR(1 downto 0);
            ascii_in : in STD_LOGIC_VECTOR (7 downto 0);
-           custom_out : out STD_LOGIC_VECTOR(7 downto 0)); 
+           custom_out : out STD_LOGIC_VECTOR(7 downto 0); 
+           menu_rom_addr_load_val : out STD_LOGIC_VECTOR(7 downto 0);  
+           menu_rom_addr_load_en : out STD_LOGIC;
+           menu_rom_addr : in STD_LOGIC_VECTOR(7 downto 0);
+           menu_rom_addr_inc : out STD_LOGIC;
+           menu_rom_inc_char_cnt : out STD_LOGIC; 
+           menu_rom_clear_char_cnt : out STD_LOGIC;
+           menu_rom_line_done : in STD_LOGIC); 
 end ControlPath;
 
 architecture Behavioral of ControlPath is
 
-    type FSM is (Init, HandlePrompt, WaitRx, Print, HandleEnter, HandleBackspace, STOP);
+    type FSM is (Init, HandlePrompt, WaitRx, Print, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP);
     signal state_reg, state_next : FSM := Init;
 
     -- type StringType is array(0 to 5) of std_logic_vector(7 downto 0);
     -- shared variable word : StringType := (others => (others => '0'));
     signal i_cnt, i_cnt_next : integer := 0;
 
+
+    constant OUTPUT_MUX_INPUT : std_logic_vector(1 downto 0) := "00";
+    constant OUTPUT_MUX_RAM : std_logic_vector(1 downto 0) := "01";
+    constant OUTPUT_MUX_CUSTOM : std_logic_vector(1 downto 0) := "10";
+    constant OUTPUT_MUX_MENUROM : std_logic_vector(1 downto 0) := "11";
+
+
+    constant HELP_START_ADDRESS : std_logic_vector(7 downto 0) := x"00";
+    constant HELP_STOP_ADDRESS : std_logic_vector(7 downto 0) := x"0E";
     -- ADD constants for mux output choices
     constant SPACE : std_logic_vector(7 downto 0) := x"20";
     constant ENTER : std_logic_vector(7 downto 0) := x"0d";
@@ -43,6 +59,8 @@ architecture Behavioral of ControlPath is
     constant PROMPT : std_logic_vector(7 downto 0) := x"3e";
     constant LINEFEED : std_logic_vector(7 downto 0) := x"0A";
     constant BACKSPACE : std_logic_vector(7 downto 0) := x"08";
+    constant DASH : std_logic_vector(7 downto 0) := x"2D";
+    constant HELPCOMMAND : std_logic_vector(7 downto 0) := x"68";
 
     constant ASCII_START : std_logic_vector(7 downto 0) := x"21";
     constant ASCII_STOP : std_logic_vector(7 downto 0) := x"7E";
@@ -72,7 +90,7 @@ begin
         end if;
     end process;
 
-    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in)
+    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out)
     begin
         state_next <= state_reg;
         wr_uart <= '0';
@@ -85,20 +103,26 @@ begin
         opcode_reg_clear <= '0';
         output_reg_load <= '0';
         output_reg_clear <= '0';
-        output_reg_mux <= "00";
+        output_reg_mux <= OUTPUT_MUX_INPUT;
         i_cnt_next <= i_cnt;
         custom_out <= (others => '0');
+        menu_rom_addr_load_val <= (others => '0');
+        menu_rom_addr_load_en <= '0';
+        menu_rom_addr_inc <= '0';
+        menu_rom_inc_char_cnt <= '0';
+        menu_rom_clear_char_cnt <= '0';
         case state_reg is
             when Init =>
-                output_reg_mux <= "10";
-                wr_uart <= '1';
-                custom_out <= LINEFEED;
-                i_cnt_next <= 0;
-                
-                state_next <= HandlePrompt;
+                -- Reset menu rom address counter and char cnt
+                 menu_rom_addr_load_val <= HELP_START_ADDRESS;
+                 menu_rom_addr_load_en <= '1';
+                 menu_rom_clear_char_cnt <= '1';
+                 state_next <= PrintHelp;
+
+                -- state_next <= WaitRx;
             when HandlePrompt =>
                 if tx_full = '0' then
-                    output_reg_mux <= "10";
+                    output_reg_mux <= OUTPUT_MUX_CUSTOM;
                     wr_uart <= '1';
                     i_cnt_next <= i_cnt + 1;
                     if i_cnt = 0 then
@@ -115,9 +139,10 @@ begin
                         if ascii_in = ENTER then
                             wr_uart <= '1';
                             ram_write <= '1';
-                            addr_cnt_en <= '1';
+                            addr_cnt_clear <= '1';
+                            -- addr_cnt_en <= '1';
                             i_cnt_next <= 0;
-                            output_reg_mux <= "10";
+                            output_reg_mux <= OUTPUT_MUX_CUSTOM;
                             custom_out <= LINEFEED;
                             wr_uart <= '1';
                             state_next <= HandleEnter;
@@ -127,7 +152,7 @@ begin
                                 ram_write <= '1';
                                 addr_cnt_en <= '1';
                                 i_cnt_next <= 0;
-                                output_reg_mux <= "10";
+                                output_reg_mux <= OUTPUT_MUX_CUSTOM;
                                 custom_out <= BACKSPACE;
                                 ram_clr <= '1';
                                 addr_cnt_up_down <= '1';
@@ -145,7 +170,7 @@ begin
 
             when HandleBackspace =>
                 if tx_full = '0' then
-                    output_reg_mux <= "10";
+                    output_reg_mux <= OUTPUT_MUX_CUSTOM;
                     wr_uart <= '1';
                     i_cnt_next <= i_cnt + 1;
                     if i_cnt = 0 then
@@ -157,9 +182,25 @@ begin
                 end if;
             when HandleEnter =>
                 if tx_full = '0' then
-                    output_reg_mux <= "10";
+                    output_reg_mux <= OUTPUT_MUX_CUSTOM;
                     custom_out <= ENTER; 
                     wr_uart <= '1';
+                    if(ram_data_out = DASH) then
+                        state_next <= ParseCommand;
+                        addr_cnt_en <= '1';
+                    else
+                        state_next <= Print;
+                        -- addr_cnt_clear <= '1';
+                    end if;
+                end if;
+            when ParseCommand =>
+                if(ram_data_out = HELPCOMMAND) then
+                    addr_cnt_clear <= '1';
+                    menu_rom_addr_load_val <= HELP_START_ADDRESS;
+                    menu_rom_addr_load_en <= '1';
+                    menu_rom_clear_char_cnt <= '1';
+                    state_next <= PrintHelp;
+                else
                     state_next <= Print;
                     addr_cnt_clear <= '1';
                 end if;
@@ -167,17 +208,37 @@ begin
                 if tx_full = '0' then
                     if ram_data_out = ENTER then
                         wr_uart <= '1';
-                        output_reg_mux <= "10";
+                        output_reg_mux <= OUTPUT_MUX_CUSTOM;
                         custom_out <= LINEFEED; 
                         addr_cnt_clear <= '1';
                         i_cnt_next <= 0;
                         state_next <= HandlePrompt;
                     else
                         wr_uart <= '1';
-                        output_reg_mux <= "01";
+                        output_reg_mux <= OUTPUT_MUX_RAM;
                         addr_cnt_en <= '1';
                     end if;
                 end if;
+            when PrintHelp =>
+                if tx_full = '0' then
+                    if menu_rom_addr = HELP_STOP_ADDRESS then
+                        output_reg_mux <= OUTPUT_MUX_CUSTOM;
+                        wr_uart <= '1';
+                        custom_out <= LINEFEED;
+                        i_cnt_next <= 0;
+                        state_next <= HandlePrompt;
+                    else
+                        output_reg_mux <= OUTPUT_MUX_MENUROM;
+                        wr_uart <= '1';
+                        menu_rom_inc_char_cnt <= '1';
+                        if(menu_rom_line_done = '1') then
+                            menu_rom_addr_inc <= '1';
+                            menu_rom_clear_char_cnt <= '1';
+                        end if;
+                    end if;
+                end if;
+
+
             when STOP =>
         end case;
     end process;

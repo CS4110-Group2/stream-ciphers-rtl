@@ -67,6 +67,8 @@ begin
         rst => '0',
         clk => clk,
         clr => '0',
+        data_in => (others => '0'),
+        load_en => '0',
         q => open,
         max_tick => baudrate_tick
     );
