@@ -111,7 +111,8 @@ begin
         rc4_ready               => rc4_ready,
         autoclave_start         => autoclave_start,
         autoclave_clear         => autoclave_clear,
-        cipher_select_signal    => cipher_select_signal
+        cipher_select_signal    => cipher_select_signal,
+        encrypt_decrypt => encrypt_decrypt_signal
     );
 
 

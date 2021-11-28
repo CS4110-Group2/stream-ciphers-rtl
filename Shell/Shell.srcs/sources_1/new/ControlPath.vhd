@@ -38,17 +38,15 @@ entity ControlPath is
            menu_rom_addr_inc       : out STD_LOGIC;
            menu_rom_inc_char_cnt   : out STD_LOGIC; 
            menu_rom_clear_char_cnt : out STD_LOGIC;
-           menu_rom_line_done      : in  STD_LOGIC); 
+           menu_rom_line_done      : in  STD_LOGIC; 
+           encrypt_decrypt         : in  STD_LOGIC); 
 end ControlPath;
 
 architecture Behavioral of ControlPath is
 
-    type FSM is (Init, HandlePrompt, WaitRx, Print, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP,
-                HandleRc4, HandleAutoclave, WaitForRc4);
+    type FSM is (Init, HandlePrompt, WaitRx, Print, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP, HandleRc4, HandleAutoclave, WaitForRc4);
     signal state_reg, state_next : FSM := Init;
 
-    -- type StringType is array(0 to 5) of std_logic_vector(7 downto 0);
-    -- shared variable word : StringType := (others => (others => '0'));
     signal i_cnt, i_cnt_next : integer := 0;
 
 
@@ -61,10 +59,9 @@ architecture Behavioral of ControlPath is
     constant CIPHER_RC4       : std_logic := '1';
     constant CIPHER_AUTOCLAVE : std_logic := '0';
 
-
     constant HELP_START_ADDRESS : std_logic_vector(7 downto 0) := x"00";
     constant HELP_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"0E";
-    -- ADD constants for mux output choices
+
     constant SPACE       : std_logic_vector(7 downto 0) := x"20";
     constant ENTER       : std_logic_vector(7 downto 0) := x"0d";
     constant DELETE      : std_logic_vector(7 downto 0) := x"7F";
@@ -102,7 +99,7 @@ begin
         end if;
     end process;
 
-    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_ready, rc4_done)
+    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_ready, rc4_done, encrypt_decrypt)
     begin
         state_next              <= state_reg;
         wr_uart                 <= '0';
