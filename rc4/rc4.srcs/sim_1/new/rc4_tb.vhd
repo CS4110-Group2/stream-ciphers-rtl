@@ -58,47 +58,19 @@ begin
 	process
 	begin
 	   clear_tb <= '0';
---	   wait until ready_tb = '1';
---	   data_in_tb <= x"61"; --a
---	   start_tb <= '1';
---	   wait for clk_period;
---	   start_tb <= '0';
---	   wait until done_tb = '1' for 10*clk_period ;
-	   
---	   assert data_out_tb = x"15"
---	       report "[Fail] Expected: 0x15"
---	       severity failure;
-	   
---	   wait until ready_tb = '1' for 10*clk_period ;
---	   data_in_tb <= x"62"; --b
---	   start_tb <= '1';
---	   wait for clk_period;
---	   start_tb <= '0';
-	   
---	   wait until done_tb = '1' for 10*clk_period ;
-	   
---	   assert data_out_tb = x"8d"
---	       report "[Fail] Expected 0x8D"
---	       severity failure;
-	       
---	   clear_tb <= '1';
---	   wait for clk_period;
---	   clear_tb <= '0';
-	   
---	   wait until ready_tb = '1' for 10*clk_period;
---	   data_in_tb <= x"61"; --a
---	   start_tb <= '1';
---	   wait for clk_period;
---	   start_tb <= '0';
---	   wait until done_tb = '1' for 10*clk_period ;
-	   
---	   assert data_out_tb = x"15"
---	       report "[Fail] Expected: 0x15"
---	       severity failure;
-	       
+	     
 	   for i in 0 to plaintext'length - 1 loop
 	       write_byte(plaintext(i), data_in_tb, start_tb);
-	       --write_byte(std_logic_vector(to_unsigned(plaintext(i))));
+	       assert data_out_tb = rc4_cipher(i)
+	           severity failure;
+	   end loop;
+	   
+	   clear_tb <= '1';
+	   wait for clk_period;
+	   clear_tb <= '0';
+	   
+	   for i in 0 to plaintext'length - 1 loop
+	       write_byte(plaintext(i), data_in_tb, start_tb);
 	       assert data_out_tb = rc4_cipher(i)
 	           severity failure;
 	   end loop;

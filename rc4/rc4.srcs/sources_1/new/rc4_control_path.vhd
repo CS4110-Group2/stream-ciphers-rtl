@@ -88,17 +88,10 @@ begin
                 load_reg_j         <= '1';
                 state_next         <= KSA;
             when KSA =>
-                if (counter_i_max_tick = '1') then
-                    counter_i_load <= '1';
-                    reg_j_select   <= '0';
-                    clear_reg_j    <= '1';
-                    state_next     <= Wait_For_Start;
-                else
-                    ram_address_select <= "01";
-                    reg_tmp_select     <= '0';
-                    load_reg_tmp       <= '1';
-                    state_next         <= s2;
-                end if;
+                ram_address_select <= "01";
+                reg_tmp_select     <= '0';
+                load_reg_tmp       <= '1';
+                state_next         <= s2;
             when s2 =>
                 ram_address_select <= "00";
                 reg_tmp_select     <= '0';
@@ -108,8 +101,15 @@ begin
             when s3 =>
                 ram_address_select <= "01";
                 ram_write          <= '1';
-                counter_i_inc      <= '1';
-                state_next         <= s4;
+                if (counter_i_max_tick = '1') then
+                    counter_i_load <= '1';
+                    reg_j_select   <= '0';
+                    clear_reg_j    <= '1';
+                    state_next     <= Wait_For_Start;
+                else
+                    counter_i_inc <= '1';
+                    state_next    <= s4;
+                end if;
             when s4 =>
                 ram_address_select <= "00";
                 load_reg_j         <= '1';
