@@ -67,7 +67,7 @@ architecture Behavioral of ControlPath is
     constant CIPHER_AUTOCLAVE : std_logic := '0';
 
     constant HELP_START_ADDRESS : std_logic_vector(7 downto 0) := x"00";
-    constant HELP_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"0E";
+    constant HELP_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"10";
 
     constant SPACE       : std_logic_vector(7 downto 0) := x"20";
     constant ENTER       : std_logic_vector(7 downto 0) := x"0d";
@@ -106,7 +106,7 @@ begin
         end if;
     end process;
 
-    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_ready, rc4_done, encrypt_decrypt, addr_cnt_zero, cipher_select_signal)
+    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_done, rc4_ready, encrypt_decrypt, cipher_select_signal, addr_cnt_zero)
     begin
         state_next              <= state_reg;
         wr_uart                 <= '0';
@@ -135,18 +135,18 @@ begin
 
         case state_reg is
             when Init =>
-                -- Reset menu rom address counter and char cnt
---                 menu_rom_addr_load_val <= HELP_START_ADDRESS;
---                 menu_rom_addr_load_en <= '1';
---                 menu_rom_clear_char_cnt <= '1';
---                 state_next <= PrintHelp;
+--                 Reset menu rom address counter and char cnt
+                 menu_rom_addr_load_val <= HELP_START_ADDRESS;
+                 menu_rom_addr_load_en <= '1';
+                 menu_rom_clear_char_cnt <= '1';
+                 state_next <= PrintHelp;
 
                 --Skip print help on start
-                 output_reg_mux <= OUTPUT_MUX_CUSTOM;
-                 wr_uart <= '1';
-                 custom_out <= LINEFEED;
-                 i_cnt_next <= 0;
-                 state_next <= HandlePrompt;
+--                 output_reg_mux <= OUTPUT_MUX_CUSTOM;
+--                 wr_uart <= '1';
+--                 custom_out <= LINEFEED;
+--                 i_cnt_next <= 0;
+--                 state_next <= HandlePrompt;
             when HandlePrompt =>
                 if tx_full = '0' then
                     output_reg_mux <= OUTPUT_MUX_CUSTOM;
@@ -302,6 +302,7 @@ begin
                     state_next     <= Print;
                 end if;
             when HandleAutoclave =>
+                --rc4_start <= '1'; -- for testing
                 autoclave_start <= '0';
                 output_reg_mux  <= OUTPUT_MUX_AUTOCLAVE;
                 wr_uart         <= '1';

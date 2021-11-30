@@ -1,15 +1,17 @@
 \n
-StreamCipher Project 1.1
+StreamCipher Project 1.0
 By V.Bodahl, K.Odde, S.Onarheim and S.Rudin
 \n
 CipherSelection:
-	Autoclave: SW1 - High
-	RC4:       SW1 - Low
+	RC4:       SW0 - High
+	Autoclave: SW0 - Low
 \n
-Encrypt/Deprypt
-	Encrypt:   SW2 - High
-	Decrypt:   SW2 - Low
+Encrypt/Deprypt:
+	Encrypt:   SW1 - High
+	Decrypt:   SW1 - Low
 \n
+Asynchronous Reset:
+	BtnC
 Help
 	-h
 \n

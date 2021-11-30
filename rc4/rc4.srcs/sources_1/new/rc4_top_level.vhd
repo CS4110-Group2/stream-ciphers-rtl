@@ -16,24 +16,24 @@ end rc4_top_level;
 architecture Behavioral of rc4_top_level is
 
     -- Memory signals
-    signal ram_address : STD_LOGIC_VECTOR (7 downto 0);
+    signal ram_address                                          : STD_LOGIC_VECTOR (7 downto 0);
     signal ram_data_out, ram_data_in, rom_data_out, reg_tmp_out : STD_LOGIC_VECTOR (7 downto 0);
-    signal reg_j_in, reg_j_out, reg_tmp_in : STD_LOGIC_VECTOR (7 downto 0);
-    signal load_reg_j, clear_reg_j, load_reg_tmp, ram_write : STD_LOGIC;
-    signal load_reg_k_index : STD_LOGIC;
+    signal reg_j_in, reg_j_out, reg_tmp_in                      : STD_LOGIC_VECTOR (7 downto 0);
+    signal load_reg_j, clear_reg_j, load_reg_tmp, ram_write     : STD_LOGIC;
+    signal load_reg_k_index                                     : STD_LOGIC;
 
     -- ALU signals
-    signal something_adder_out : STD_LOGIC_VECTOR (7 downto 0);
+    signal reg_j_and_ram_adder_out         : STD_LOGIC_VECTOR (7 downto 0);
     signal keystream_value_index_adder_out : STD_LOGIC_VECTOR (7 downto 0);
 
     -- MUX signals
-    signal ram_address_select : STD_LOGIC_VECTOR (1 downto 0);
+    signal ram_address_select           : STD_LOGIC_VECTOR (1 downto 0);
     signal reg_j_select, reg_tmp_select : STD_LOGIC;
-    signal ram_data_in_select : STD_LOGIC;
+    signal ram_data_in_select           : STD_LOGIC;
 
     -- Counter signals
     signal counter_i_inc, counter_i_clear, counter_i_max_tick, counter_i_load : STD_LOGIC;
-    signal counter_i_out : STD_LOGIC_VECTOR (7 downto 0);
+    signal counter_i_out                                                      : STD_LOGIC_VECTOR (7 downto 0);
 
     begin
 
@@ -68,19 +68,19 @@ architecture Behavioral of rc4_top_level is
              ram_data_in_select => ram_data_in_select);
 
     -- Glue logic
-    something_adder_out <= STD_LOGIC_VECTOR(unsigned(reg_j_out) + unsigned(ram_data_out));
+    reg_j_and_ram_adder_out <= STD_LOGIC_VECTOR(unsigned(reg_j_out) + unsigned(ram_data_out));
 
     keystream_value_index_adder_out <= STD_LOGIC_VECTOR(unsigned(ram_data_out) + unsigned(reg_tmp_out));
 
     data_out <= STD_LOGIC_VECTOR(unsigned(data_in) xor unsigned(ram_data_out));
 
     -- J Register Multiplexer
-    reg_j_in <= something_adder_out when reg_j_select = '0' else
-                STD_LOGIC_VECTOR(unsigned(something_adder_out) + unsigned(rom_data_out));
+    reg_j_in <= reg_j_and_ram_adder_out when reg_j_select = '0' else
+                STD_LOGIC_VECTOR(unsigned(reg_j_and_ram_adder_out) + unsigned(rom_data_out));
 
     -- RAM Address Multiplexer
-    ram_address <= counter_i_out when ram_address_select = "00" else -- Maybe fix this one
-                   reg_j_out when ram_address_select = "01" else
+    ram_address <= counter_i_out when ram_address_select = "00" else
+                   reg_j_out     when ram_address_select = "01" else
                    reg_tmp_out;
 
     -- TMP Register Multiplexer

@@ -4,6 +4,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use ieee.math_real.all;
 use std.env.finish;
+use IEEE.std_logic_textio.all;
 
 entity Shell_tb is
 --  Port ( );
@@ -65,7 +66,7 @@ architecture Behavioral of Shell_tb is
 	is
 		constant wait_time : time := integer(real(real(1)/real(bitrate))*1000000) *1 us;
 	begin
-		wait until RsTx = '0' for 10*clk_period;
+		wait until RsTx = '0' for 100*clk_period;
 		
 		wait for wait_time; -- Start bit
 
@@ -78,13 +79,13 @@ architecture Behavioral of Shell_tb is
 
 	constant BITRATE : integer := 19200;
     
-    --constant input : string := "Attack at dawn";
-    constant input : string := "ATTACK AT DAWN";
+    --constant plaintext : string := "Attack at dawn";
+    constant plaintext : string := "ATTACK AT DAWN";
     
     --constant rc4_test_input : string := "OK";
-    type ascii_array is array (0 to 1) of std_logic_vector (7 downto 0);
+    type ascii_array is array (0 to 13) of std_logic_vector (7 downto 0);
     
-    constant rc4_cipher : ascii_array := (x"1b", x"84");
+    constant rc4_cipher : ascii_array := (x"35", x"bb", x"56", x"f5", x"19", x"c9", x"17", x"67", x"7b", x"09", x"e6", x"bc", x"6f", x"4c");
     --constant autoclave_cipher : string := "Sxvrgd am wayx";
     constant autoclave_cipher : string := "SXVRGD AM WAYX";
 
@@ -140,10 +141,10 @@ begin
             severity failure;
             
         -- Test for echo
-        for i in input'range loop 
-            writeUart(std_logic_vector(to_unsigned(character'pos(input(i)), 8)), RsRx, BITRATE);
+        for i in plaintext'range loop 
+            writeUart(std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8)), RsRx, BITRATE);
             readUart(tmp, BITRATE);
-            assert tmp = std_logic_vector(to_unsigned(character'pos(input(i)), 8))
+            assert tmp = std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8))
                 severity failure;
 		end loop;
 		
@@ -163,7 +164,7 @@ begin
 		    severity failure;
 
 		-- Test Autoclave Encrypt
-		for i in input'range loop 
+		for i in plaintext'range loop 
             readUart(tmp, BITRATE);
             assert tmp = std_logic_vector(to_unsigned(character'pos(autoclave_cipher(i)), 8))
                 severity failure;
@@ -183,15 +184,14 @@ begin
             severity failure;
 		
         -- Test for echo
-        for i in input'range loop 
+        for i in plaintext'range loop 
             writeUart(std_logic_vector(to_unsigned(character'pos(autoclave_cipher(i)), 8)), RsRx, BITRATE);
             readUart(tmp, BITRATE);
             assert tmp = std_logic_vector(to_unsigned(character'pos(autoclave_cipher(i)), 8))
                 severity failure;
 		end loop;
 		
-        -- Switch to Autoclave cipher and select encrypt 
-        -- Send CR
+        -- Switch to decrypt and send CR
 		cipher_select_signal <= '0';
 		encrypt_decrypt_signal <= '0';
 		writeUart(x"0d", RsRx, BITRATE);
@@ -206,11 +206,75 @@ begin
 		    severity failure;
 		
 		-- Test Autoclave Decrypt
-		for i in input'range loop 
+		for i in plaintext'range loop 
             readUart(tmp, BITRATE);
-            assert tmp = std_logic_vector(to_unsigned(character'pos(input(i)), 8))
+            assert tmp = std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8))
                 severity failure;
 		end loop;
+		
+		-- Test for LF, CR and >
+        readUart(tmp, BITRATE);
+        assert tmp = x"0a"
+            severity failure;
+        
+        readUart(tmp, BITRATE);
+        assert tmp = x"0d"
+            severity failure;
+            
+        readUart(tmp, BITRATE);
+        assert tmp = x"3e"
+            severity failure;
+		
+		-- Test for echo
+        for i in plaintext'range loop 
+            writeUart(std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8)), RsRx, BITRATE);
+            readUart(tmp, BITRATE);
+            report "Hello";
+            assert tmp = std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8))
+                severity failure;
+		end loop;
+		
+        -- Switch to RC4 and send CR (We will encode)
+		cipher_select_signal <= '1';
+		--encrypt_decrypt_signal <= '0';
+		writeUart(x"0d", RsRx, BITRATE);
+
+		-- Test for LFCR after sending CR (Should have been CRLF)
+		readUart(tmp, BITRATE);
+		assert tmp = x"0a"
+		    severity failure;
+		    
+		readUart(tmp, BITRATE);
+		assert tmp = x"0d"
+		    severity failure;
+            
+        for i in 0 to plaintext'length -1 loop 
+            readUart(tmp, BITRATE);
+            assert tmp = rc4_cipher(i)
+                severity failure;
+		end loop;
+		
+		-- Test for LF, CR and >
+		-- We have to get hex2ascii and ascii2hex before we can decrypt.
+--        readUart(tmp, BITRATE);
+--        assert tmp = x"0a"
+--            severity failure;
+        
+--        readUart(tmp, BITRATE);
+--        assert tmp = x"0d"
+--            severity failure;
+            
+--        readUart(tmp, BITRATE);
+--        assert tmp = x"3e"
+--            severity failure;
+		
+--        -- Test for echo
+--        for i in 0 to rc4_cipher'length - 1 loop 
+--            writeUart(rc4_cipher(i), RsRx, BITRATE);
+--            readUart(tmp, BITRATE);
+--            assert tmp = rc4_cipher(i)
+--                severity failure;
+--		end loop;
 		
 		report "Test: OK";
 	    finish;
@@ -224,8 +288,8 @@ begin
 --		writeUart( x"0d", RsRx, BITRATE);
 
 
---        for i in input'range loop 
---            writeUart(std_logic_vector(to_unsigned(character'pos(input(i)), 8)), RsRx, BITRATE);
+--        for i in plaintext'range loop 
+--            writeUart(std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8)), RsRx, BITRATE);
 --		end loop;
 --		writeUart( x"7F", RsRx, BITRATE);
 --		writeUart( x"7F", RsRx, BITRATE);
