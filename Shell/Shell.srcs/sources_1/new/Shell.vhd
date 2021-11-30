@@ -58,21 +58,17 @@ architecture Behavioral of Shell is
     signal autoclave_encryption_led              : std_logic;
 
     --hex to ascii/ascii to hex
-    signal hex_to_ascii_lsb_in : std_logic_vector(7 downto 0);
-    signal hex_to_ascii_msb_in : std_logic_vector(7 downto 0);
+    signal hex_to_ascii_in : std_logic_vector(7 downto 0);
     signal hex_to_ascii_out : std_logic_vector(7 downto 0);
+    signal hex_to_ascii_load : std_logic;
     signal ascii_to_hex_in : std_logic_vector(7 downto 0);
     signal ascii_to_hex_out : std_logic_vector(7 downto 0);
     signal ascii_to_hex_lsb_msb : std_logic;
-    signal hex_reg_in, hex_reg_out : std_logic_vector(7 downto 0);
-    signal hex_reg_load, hex_reg_clear : std_logic;
 
     
 begin
-    hex_reg_in <= ram_data_out;
-    hex_to_ascii_msb_in <= hex_reg_out;
-    hex_to_ascii_lsb_in <= ram_data_out;
-
+    hex_to_ascii_in <= ram_data_out;
+    ascii_to_hex_in <= rc4_data_out;
 
     ram_data_in <= ascii_in;
 
@@ -87,8 +83,9 @@ begin
 
     ascii_out <= ascii_in          when output_reg_mux = "000" else
                  rc4_data_out      when output_reg_mux = "001" else
-                 custom_out        when output_reg_mux = "010" else
-                 menu_rom_data_out when output_reg_mux = "011" else
+                 ascii_to_hex_out      when output_reg_mux = "010" else
+                 custom_out        when output_reg_mux = "011" else
+                 menu_rom_data_out when output_reg_mux = "100" else
                  autoclave_data_out;
 
 
@@ -111,8 +108,8 @@ begin
         addr_cnt_zero => addr_cnt_zero,
         opcode_reg_load => opcode_reg_load,
         opcode_reg_clear => opcode_reg_clear,
-        hex_reg_load => hex_reg_load,
-        hex_reg_clear => hex_reg_clear,
+        hex_to_ascii_load => hex_to_ascii_load,
+        ascii_to_hex_lsb_msb => ascii_to_hex_lsb_msb,
         output_reg_mux => output_reg_mux,
         ascii_in => ascii_in,
         custom_out => custom_out,
@@ -235,26 +232,14 @@ begin
         data_out => opcode_reg_out
     );
 
-    hex_temp_reg : entity work.Reg(Behavioral)
-    generic map
-    (
-        SIZE => 8
-    )
-    port map
-    (
-        clk => clk,
-        rst => rst,
-        load => hex_reg_load,
-        clear => hex_reg_clear,
-        data_in => hex_reg_in,
-        data_out => hex_reg_out
-    );
 
     hex_to_ascii : entity work.HexToAscii(Behavioral)
     Port map
     (
-        hex_lsb => hex_to_ascii_lsb_in,
-        hex_msb => hex_to_ascii_msb_in,
+        clk => clk,
+        rst => rst,
+        load => hex_to_ascii_load,
+        data_in => hex_to_ascii_in,
         ascii => hex_to_ascii_out
     );
 

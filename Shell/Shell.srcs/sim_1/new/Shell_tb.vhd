@@ -83,9 +83,27 @@ architecture Behavioral of Shell_tb is
     constant plaintext : string := "ATTACK AT DAWN";
     
     --constant rc4_test_input : string := "OK";
-    type ascii_array is array (0 to 13) of std_logic_vector (7 downto 0);
+    type ascii_array is array (0 to 27) of std_logic_vector (7 downto 0);
     
-    constant rc4_cipher : ascii_array := (x"35", x"bb", x"56", x"f5", x"19", x"c9", x"17", x"67", x"7b", x"09", x"e6", x"bc", x"6f", x"4c");
+    -- constant rc4_cipher : ascii_array := (x"35", x"bb", x"56", x"f5", x"19", x"c9", x"17", x"67", x"7b", x"09", x"e6", x"bc", x"6f", x"4c");
+    constant rc4_cipher : ascii_array := 
+	(
+	x"33", x"35", --35
+	x"42", x"42", --bb
+	x"35", x"36", --56
+	x"46", x"35", --f5
+	x"31", x"39", --19
+	x"43", x"39", --c9
+	x"31", x"37", --17
+	x"36", x"37", --67
+	x"37", x"42", --7b
+	x"30", x"39", --09
+	x"45", x"36", --e6
+	x"42", x"43", --bc
+	x"36", x"46", --6f a3
+	x"34", x"43"); --4c
+	
+    --constant autoclave_cipher : string := "Sxvrgd am wayx";
     --constant autoclave_cipher : string := "Sxvrgd am wayx";
     constant autoclave_cipher : string := "SXVRGD AM WAYX";
 
@@ -236,7 +254,7 @@ begin
 		
         -- Switch to RC4 and send CR (We will encode)
 		cipher_select_signal <= '1';
-		--encrypt_decrypt_signal <= '0';
+		encrypt_decrypt_signal <= '1';
 		writeUart(x"0d", RsRx, BITRATE);
 
 		-- Test for LFCR after sending CR (Should have been CRLF)
@@ -248,8 +266,9 @@ begin
 		assert tmp = x"0d"
 		    severity failure;
             
-        for i in 0 to plaintext'length -1 loop 
+        for i in 0 to rc4_cipher'length -1 loop 
             readUart(tmp, BITRATE);
+			report "Ciphering RC4";
             assert tmp = rc4_cipher(i)
                 severity failure;
 		end loop;

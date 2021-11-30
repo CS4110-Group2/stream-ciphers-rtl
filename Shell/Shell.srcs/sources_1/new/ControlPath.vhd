@@ -28,8 +28,8 @@ entity ControlPath is
            cipher_select_signal    : in  STD_LOGIC;
            opcode_reg_load         : out STD_LOGIC;
            opcode_reg_clear        : out STD_LOGIC;
-           hex_reg_load            : out STD_LOGIC;
-           hex_reg_clear           : out STD_LOGIC;
+           hex_to_ascii_load            : out STD_LOGIC;
+           ascii_to_hex_lsb_msb    : out STD_LOGIC;  
            output_reg_mux          : out STD_LOGIC_VECTOR(2 downto 0);
            ascii_in                : in  STD_LOGIC_VECTOR (7 downto 0);
            custom_out              : out STD_LOGIC_VECTOR(7 downto 0); 
@@ -45,21 +45,23 @@ end ControlPath;
 
 architecture Behavioral of ControlPath is
 
-    type FSM is (Init, HandlePrompt, WaitRx, Print, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP, HandleRc4Encrypt, HandleRc4Decrypt, HandleAutoclave, WaitForRc4);
+    type FSM is (Init, HandlePrompt, WaitRx, LoopState, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP, StartRc4, HandleAutoclave, ReadRc4, WaitForRc4);
     signal state_reg, state_next : FSM := Init;
 
     signal i_cnt, i_cnt_next : integer := 0;
 
+    constant ASCII_TO_HEX_LSB     : std_logic := '0';
+    constant ASCII_TO_HEX_MSB     : std_logic := '1';
 
     constant OUTPUT_MUX_INPUT     : std_logic_vector(2 downto 0) := "000";
     constant OUTPUT_MUX_RC4_ASCII : std_logic_vector(2 downto 0) := "001";
-    constant OUTPUT_MUX_RC4_HEX   : std_logic_vector(2 downto 0) := "110";
-    constant OUTPUT_MUX_CUSTOM    : std_logic_vector(2 downto 0) := "010";
-    constant OUTPUT_MUX_MENUROM   : std_logic_vector(2 downto 0) := "011";
-    constant OUTPUT_MUX_AUTOCLAVE : std_logic_vector(2 downto 0) := "100";
+    constant OUTPUT_MUX_RC4_HEX   : std_logic_vector(2 downto 0) := "010";
+    constant OUTPUT_MUX_CUSTOM    : std_logic_vector(2 downto 0) := "011";
+    constant OUTPUT_MUX_MENUROM   : std_logic_vector(2 downto 0) := "100";
+    constant OUTPUT_MUX_AUTOCLAVE : std_logic_vector(2 downto 0) := "101";
 
-    constant ENCRYPT : std_logic := '0';
-    constant DECRYPT : std_logic := '1';
+    constant ENCRYPT : std_logic := '1';
+    constant DECRYPT : std_logic := '0';
     constant RC4_INPUT_MUX_ASCII : std_logic := '0';
     constant RC4_INPUT_MUX_HEX : std_logic := '1';
 
@@ -78,15 +80,27 @@ architecture Behavioral of ControlPath is
     constant DASH        : std_logic_vector(7 downto 0) := x"2D";
     constant HELPCOMMAND : std_logic_vector(7 downto 0) := x"68";
 
+    constant ACCEPT_HEX : std_logic := '1';
+    constant ACCEPT_ASCII : std_logic := '0';
     constant ASCII_START : std_logic_vector(7 downto 0) := x"21";
     constant ASCII_STOP  : std_logic_vector(7 downto 0) := x"7E";
+    constant HEX_NUM_START : std_logic_vector(7 downto 0) := x"30";
+    constant HEX_NUM_STOP  : std_logic_vector(7 downto 0) := x"39";
+    constant HEX_CHAR_UPPER_START  : std_logic_vector(7 downto 0) := x"41";
+    constant HEX_CHAR_UPPER_STOP  : std_logic_vector(7 downto 0) := x"46";
+    constant HEX_CHAR_LOWER_START  : std_logic_vector(7 downto 0) := x"61";
+    constant HEX_CHAR_LOWER_STOP  : std_logic_vector(7 downto 0) := x"66";
 
-    function ValidAscii( val : std_logic_vector(7 downto 0)) return boolean is
+    function ValidAscii( val : std_logic_vector(7 downto 0); only_hex : std_logic) return boolean is
     begin
         if(val = ENTER) or 
         (val = SPACE) or 
         (val = DELETE) or
-        (val >= ASCII_START and val <= ASCII_STOP)
+        (val = DASH) or
+        (val >= ASCII_START and val <= ASCII_STOP and only_hex = '0') or
+        (val >= HEX_NUM_START and val <= HEX_NUM_STOP) or
+        (val >= HEX_CHAR_UPPER_START and val <= HEX_CHAR_UPPER_STOP) or
+        (val >= HEX_CHAR_LOWER_START and val <= HEX_CHAR_LOWER_STOP)
         then
             return true;
         else
@@ -122,8 +136,8 @@ begin
         autoclave_start         <= '0';
         opcode_reg_load         <= '0';
         opcode_reg_clear        <= '0';
-        hex_reg_load            <= '0';
-        hex_reg_clear           <= '0';
+        hex_to_ascii_load            <= '0';
+        ascii_to_hex_lsb_msb    <= ASCII_TO_HEX_MSB;
         output_reg_mux          <= OUTPUT_MUX_INPUT;
         i_cnt_next              <= i_cnt;
         custom_out              <= (others => '0');
@@ -136,17 +150,17 @@ begin
         case state_reg is
             when Init =>
 --                 Reset menu rom address counter and char cnt
-                 menu_rom_addr_load_val <= HELP_START_ADDRESS;
-                 menu_rom_addr_load_en <= '1';
-                 menu_rom_clear_char_cnt <= '1';
-                 state_next <= PrintHelp;
+                 -- menu_rom_addr_load_val <= HELP_START_ADDRESS;
+                 -- menu_rom_addr_load_en <= '1';
+                 -- menu_rom_clear_char_cnt <= '1';
+                 -- state_next <= PrintHelp;
 
                 --Skip print help on start
---                 output_reg_mux <= OUTPUT_MUX_CUSTOM;
---                 wr_uart <= '1';
---                 custom_out <= LINEFEED;
---                 i_cnt_next <= 0;
---                 state_next <= HandlePrompt;
+                output_reg_mux <= OUTPUT_MUX_CUSTOM;
+                wr_uart <= '1';
+                custom_out <= LINEFEED;
+                i_cnt_next <= 0;
+                state_next <= HandlePrompt;
             when HandlePrompt =>
                 if tx_full = '0' then
                     output_reg_mux <= OUTPUT_MUX_CUSTOM;
@@ -162,7 +176,7 @@ begin
                 end if;
             when WaitRx =>
                 if rx_done_tick = '1' then
-                    if ValidAscii(ascii_in) then
+                    if ValidAscii(ascii_in, ACCEPT_ASCII) then
                         if ascii_in = ENTER then
                             wr_uart <= '1';
                             ram_write <= '1';
@@ -217,7 +231,7 @@ begin
                         state_next <= ParseCommand;
                         addr_cnt_en <= '1';
                     else
-                        state_next <= Print;
+                        state_next <= LoopState;
                         -- addr_cnt_clear <= '1';
                     end if;
                 end if;
@@ -229,10 +243,10 @@ begin
                     menu_rom_clear_char_cnt <= '1';
                     state_next <= PrintHelp;
                 else
-                    state_next <= Print;
+                    state_next <= LoopState;
                     addr_cnt_clear <= '1';
                 end if;
-            when Print =>
+            when LoopState =>
                 if tx_full = '0' then
                     if ram_data_out = ENTER then
                         wr_uart          <= '1';
@@ -245,18 +259,20 @@ begin
                         state_next       <= HandlePrompt;
                     else
                         if cipher_select_signal = CIPHER_RC4 then
-                            if encrypt_decrypt = ENCRYPT then
-                                state_next <= HandleRc4Encrypt;
-                            else
-                                hex_reg_load <= '1';
-                                addr_cnt_en <= '1';
-                                state_next <= HandleRc4Decrypt;
+                            state_next <= StartRc4;
+                            if encrypt_decrypt = DECRYPT then
+                                if ValidAscii(ram_data_out, ACCEPT_HEX) then
+                                    hex_to_ascii_load <= '1';
+                                    addr_cnt_en <= '1';
+                                else
+                                    --go to illegal command
+                                    --state_next <= IllegalCommand
+                                end if;
                             end if;
                         else -- CIPHER_AUTOCLAVE
                             autoclave_start <= '1';
                             state_next <= HandleAutoclave;
                         end if;
-
                         --wr_uart <= '1';
                         --output_reg_mux <= OUTPUT_MUX_RAM;
                         --addr_cnt_en <= '1';
@@ -280,34 +296,57 @@ begin
                         end if;
                     end if;
                 end if;
-            when HandleRc4Encrypt =>
+            when StartRc4 =>
                 if rc4_ready = '1' then
-                    if encrypt_decrypt = DECRYPT;
-                        rc4_input_mux <= RC4_INPUT_MUX_HEX;
+                    if encrypt_decrypt = DECRYPT then
+                        if ValidAscii(ram_data_out, ACCEPT_HEX) then
+                            rc4_start  <= '1';
+                            rc4_input_mux <= RC4_INPUT_MUX_HEX;
+                            state_next <= WaitForRc4;
+                        else
+                            --go to illegal command received
+                        end if;
+                    else --if ENCRYPT
+                        rc4_start  <= '1';
+                        state_next <= WaitForRc4;
                     end if;
-
-                    rc4_start  <= '1';
-                    state_next <= WaitForRc4;
-                end if;
-            when HandleRc4Decrypt =>
-                if rc4_ready = '1' then
-                    rc4_start  <= '1';
-                    state_next <= WaitForRc4;
                 end if;
             when WaitForRc4 =>
                 if rc4_done = '1' then
-                    output_reg_mux <= OUTPUT_MUX_RC4_ASCII;
-                    wr_uart        <= '1';
-                    addr_cnt_en    <= '1';
-                    state_next     <= Print;
+                    state_next <= ReadRc4;
+                    i_cnt_next <= 0;
+                end if;
+            when ReadRc4 =>
+                if tx_full = '0' then
+                    if encrypt_decrypt = DECRYPT then
+                        output_reg_mux <= OUTPUT_MUX_RC4_ASCII;
+                        wr_uart        <= '1';
+                        addr_cnt_en    <= '1';
+                        state_next     <= LoopState;
+                    else
+                        if i_cnt = 0 then
+                            ascii_to_hex_lsb_msb <= ASCII_TO_HEX_MSB;
+                            output_reg_mux <= OUTPUT_MUX_RC4_HEX;
+                            wr_uart        <= '1';
+                            i_cnt_next <= i_cnt + 1;
+                        else
+                            ascii_to_hex_lsb_msb <= ASCII_TO_HEX_LSB;
+                            output_reg_mux <= OUTPUT_MUX_RC4_HEX;
+                            wr_uart        <= '1';
+                            addr_cnt_en    <= '1';
+                            state_next     <= LoopState;
+                        end if;
+                    end if;
                 end if;
             when HandleAutoclave =>
-                --rc4_start <= '1'; -- for testing
-                autoclave_start <= '0';
-                output_reg_mux  <= OUTPUT_MUX_AUTOCLAVE;
-                wr_uart         <= '1';
-                addr_cnt_en     <= '1';
-                state_next      <= Print;
+                if tx_full = '0' then
+                    --rc4_start <= '1'; -- for testing
+                    autoclave_start <= '0';
+                    output_reg_mux  <= OUTPUT_MUX_AUTOCLAVE;
+                    wr_uart         <= '1';
+                    addr_cnt_en     <= '1';
+                    state_next      <= LoopState;
+                end if;
 
             when STOP =>
         end case;
