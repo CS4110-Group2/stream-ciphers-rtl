@@ -160,7 +160,7 @@ begin
         menu_rom_addr_inc       <= '0';
         menu_rom_inc_char_cnt   <= '0';
         menu_rom_clear_char_cnt <= '0';
-        encrypt_decrypt_reg     <= encrypt_decrypt_next;
+        encrypt_decrypt_next     <= encrypt_decrypt_reg;
 
         case state_reg is
             when Init =>
@@ -349,6 +349,7 @@ begin
                     end if;
                 end if;
             when WaitForRc4 =>
+                rc4_input_mux <= RC4_INPUT_MUX_HEX;
                 if rc4_done = '1' then
                     state_next <= ReadRc4;
                     i_cnt_next <= 0;
@@ -356,6 +357,7 @@ begin
             when ReadRc4 =>
                 if tx_full = '0' then
                     if encrypt_decrypt_reg = DECRYPT then
+                        rc4_input_mux <= RC4_INPUT_MUX_HEX;
                         output_reg_mux <= OUTPUT_MUX_RC4_ASCII;
                         wr_uart        <= '1';
                         addr_cnt_en    <= '1';

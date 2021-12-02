@@ -138,12 +138,12 @@ begin
                 reg_tmp_select     <= '1';
                 load_reg_tmp       <= '1';
                 state_next         <= s8;
-                done_next          <= '1';
             when s8 =>
                 ram_address_select <= "10";
                 counter_i_inc      <= '1';
                 ready_next         <= '1';
                 state_next         <= Wait_For_Start;
+                done_next          <= '1';
         end case;
     end process;
 

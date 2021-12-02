@@ -356,8 +356,8 @@ begin
 
 		 --Test RC4 Decrypt:
 		for i in plaintext'range loop 
-			-- expectedVal <= std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8));
-			expectedVal <= x"00";
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8));
+			-- expectedVal <= x"00";
 			readUart(expectedVal);
 			report "RC4 Decrypt";
 		end loop;
