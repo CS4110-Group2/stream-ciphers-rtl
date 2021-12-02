@@ -35,23 +35,24 @@ begin
         if (rst = '1') then
             state_reg <= Init_Ram;
             ready_reg <= '0';
+            done_reg  <= '0';
         elsif (rising_edge(clk)) then
             if (clear = '1') then
                 state_reg <= Reset_Cipher;
             else
                 state_reg <= state_next;
                 ready_reg <= ready_next;
-                
+                done_reg  <= done_next;
             end if;
         end if;
     end process;
 
-    process (clk)
-    begin
-        if (falling_edge(clk)) then
-            done_reg  <= done_next;
-        end if;
-    end process;
+    -- process (clk)
+    -- begin
+    --     if (falling_edge(clk)) then
+    --         done_reg  <= done_next;
+    --     end if;
+    -- end process;
 
     done  <= done_reg;
     ready <= ready_reg;
@@ -137,9 +138,9 @@ begin
                 reg_tmp_select     <= '1';
                 load_reg_tmp       <= '1';
                 state_next         <= s8;
+                done_next          <= '1';
             when s8 =>
                 ram_address_select <= "10";
-                done_next          <= '1';
                 counter_i_inc      <= '1';
                 ready_next         <= '1';
                 state_next         <= Wait_For_Start;
