@@ -10,7 +10,6 @@ entity Shell is
            RsRx                   : in  STD_LOGIC;
            RsTx                   : out STD_LOGIC;
            cipher_select_signal   : in  STD_LOGIC;
-           encrypt_decrypt_signal : in  STD_LOGIC;
            led_signal             : out STD_LOGIC;
            seg                    : out STD_LOGIC_VECTOR (7 downto 0);
            an                     : out STD_LOGIC_VECTOR (3 downto 0));
@@ -64,6 +63,8 @@ architecture Behavioral of Shell is
     signal ascii_to_hex_in : std_logic_vector(7 downto 0);
     signal ascii_to_hex_out : std_logic_vector(7 downto 0);
     signal ascii_to_hex_lsb_msb : std_logic;
+
+    signal encrypt_decrypt_signal : std_logic;
 
     
 begin

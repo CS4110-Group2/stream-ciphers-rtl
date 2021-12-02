@@ -1,3 +1,4 @@
+;Help menu (This is a comment)
 \n
 StreamCipher Project 1.0
 By V.Bodahl, K.Odde, S.Onarheim and S.Rudin
@@ -15,3 +16,5 @@ Asynchronous Reset:
 Help
 	-h
 \n
+;Parse error:
+Illegal input

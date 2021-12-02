@@ -40,12 +40,12 @@ entity ControlPath is
            menu_rom_inc_char_cnt   : out STD_LOGIC; 
            menu_rom_clear_char_cnt : out STD_LOGIC;
            menu_rom_line_done      : in  STD_LOGIC; 
-           encrypt_decrypt         : in  STD_LOGIC); 
+           encrypt_decrypt         : out STD_LOGIC); 
 end ControlPath;
 
 architecture Behavioral of ControlPath is
 
-    type FSM is (Init, HandlePrompt, WaitRx, LoopState, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP, StartRc4, HandleAutoclave, ReadRc4, WaitForRc4);
+    type FSM is (Init, HandlePrompt, WaitRx, LoopState, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP, StartRc4, HandleAutoclave, ReadRc4, WaitForRc4, RamAddrIncrementState);
     signal state_reg, state_next : FSM := Init;
 
     signal i_cnt, i_cnt_next : integer := 0;
@@ -70,6 +70,8 @@ architecture Behavioral of ControlPath is
 
     constant HELP_START_ADDRESS : std_logic_vector(7 downto 0) := x"00";
     constant HELP_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"10";
+    constant ILLEGAL_COMMAND_START_ADDRESS : std_logic_vector(7 downto 0) := x"10";
+    constant ILLEGAL_COMMAND_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"11";
 
     constant SPACE       : std_logic_vector(7 downto 0) := x"20";
     constant ENTER       : std_logic_vector(7 downto 0) := x"0d";
@@ -78,7 +80,11 @@ architecture Behavioral of ControlPath is
     constant LINEFEED    : std_logic_vector(7 downto 0) := x"0A";
     constant BACKSPACE   : std_logic_vector(7 downto 0) := x"08";
     constant DASH        : std_logic_vector(7 downto 0) := x"2D";
+
     constant HELPCOMMAND : std_logic_vector(7 downto 0) := x"68";
+    constant ENCRYPTCOMMAND : std_logic_vector(7 downto 0) := x"65";
+    constant DECRYPTCOMMAND : std_logic_vector(7 downto 0) := x"64";
+    constant RESETCOMMAND : std_logic_vector(7 downto 0) := x"71";
 
     constant ACCEPT_HEX : std_logic := '1';
     constant ACCEPT_ASCII : std_logic := '0';
@@ -108,6 +114,11 @@ architecture Behavioral of ControlPath is
         end if;
     end function;
 
+
+    signal current_menu_stop_address : std_logic_vector(7 downto 0);
+    signal gotoState : FSM;
+    signal encrypt_decrypt_reg, encrypt_decrypt_next : std_logic;
+
 begin
     process(clk, rst)
     begin
@@ -116,11 +127,14 @@ begin
             i_cnt <= 0;
         elsif rising_edge(clk) then
             state_reg <= state_next;
+            encrypt_decrypt_reg <= encrypt_decrypt_next;
             i_cnt <= i_cnt_next;
         end if;
     end process;
 
-    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_done, rc4_ready, encrypt_decrypt, cipher_select_signal, addr_cnt_zero)
+    encrypt_decrypt <= encrypt_decrypt_reg;
+
+    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_done, rc4_ready, encrypt_decrypt_reg, cipher_select_signal, addr_cnt_zero)
     begin
         state_next              <= state_reg;
         wr_uart                 <= '0';
@@ -146,6 +160,7 @@ begin
         menu_rom_addr_inc       <= '0';
         menu_rom_inc_char_cnt   <= '0';
         menu_rom_clear_char_cnt <= '0';
+        encrypt_decrypt_reg     <= encrypt_decrypt_next;
 
         case state_reg is
             when Init =>
@@ -229,6 +244,7 @@ begin
                     wr_uart <= '1';
                     if(ram_data_out = DASH) then
                         state_next <= ParseCommand;
+                        i_cnt_next <= 0;
                         addr_cnt_en <= '1';
                     else
                         state_next <= LoopState;
@@ -236,16 +252,36 @@ begin
                     end if;
                 end if;
             when ParseCommand =>
-                if(ram_data_out = HELPCOMMAND) then
-                    addr_cnt_clear <= '1';
-                    menu_rom_addr_load_val <= HELP_START_ADDRESS;
-                    menu_rom_addr_load_en <= '1';
-                    menu_rom_clear_char_cnt <= '1';
-                    state_next <= PrintHelp;
-                else
-                    state_next <= LoopState;
-                    addr_cnt_clear <= '1';
-                end if;
+                case ram_data_out is
+                    when HELPCOMMAND =>
+                        addr_cnt_clear <= '1';
+                        menu_rom_addr_load_val <= HELP_START_ADDRESS;
+                        current_menu_stop_address <= HELP_STOP_ADDRESS;
+                        menu_rom_addr_load_en <= '1';
+                        menu_rom_clear_char_cnt <= '1';
+                        state_next <= PrintHelp;
+                    when ENCRYPTCOMMAND =>
+                        encrypt_decrypt_next <= ENCRYPT;
+                        addr_cnt_en <= '1';
+                        state_next <= RamAddrIncrementState;
+                        gotoState <= LoopState;
+                    when DECRYPTCOMMAND =>
+                        encrypt_decrypt_next <= DECRYPT;
+                        addr_cnt_en <= '1';
+                        state_next <= RamAddrIncrementState;
+                        gotoState <= LoopState;
+                    when RESETCOMMAND =>
+                        -- rst <= '1';
+                        -- state_next <= Init;
+                    when others =>
+                        state_next <= PrintHelp;
+                        menu_rom_addr_load_val <= ILLEGAL_COMMAND_START_ADDRESS;
+                        current_menu_stop_address <= ILLEGAL_COMMAND_STOP_ADDRESS;
+                        menu_rom_addr_load_en <= '1';
+                        menu_rom_clear_char_cnt <= '1';
+                        -- state_next <= LoopState;
+                        addr_cnt_clear <= '1';
+                end case;
             when LoopState =>
                 if tx_full = '0' then
                     if ram_data_out = ENTER then
@@ -260,13 +296,13 @@ begin
                     else
                         if cipher_select_signal = CIPHER_RC4 then
                             state_next <= StartRc4;
-                            if encrypt_decrypt = DECRYPT then
+                            if encrypt_decrypt_reg = DECRYPT then
                                 if ValidAscii(ram_data_out, ACCEPT_HEX) then
                                     hex_to_ascii_load <= '1';
                                     addr_cnt_en <= '1';
                                 else
                                     --go to illegal command
-                                    --state_next <= IllegalCommand
+                                    state_next <= Stop;
                                 end if;
                             end if;
                         else -- CIPHER_AUTOCLAVE
@@ -280,7 +316,8 @@ begin
                 end if;
             when PrintHelp =>
                 if tx_full = '0' then
-                    if menu_rom_addr = HELP_STOP_ADDRESS then
+                    -- if menu_rom_addr = HELP_STOP_ADDRESS then
+                    if menu_rom_addr = current_menu_stop_address then
                         output_reg_mux <= OUTPUT_MUX_CUSTOM;
                         wr_uart <= '1';
                         custom_out <= LINEFEED;
@@ -298,7 +335,7 @@ begin
                 end if;
             when StartRc4 =>
                 if rc4_ready = '1' then
-                    if encrypt_decrypt = DECRYPT then
+                    if encrypt_decrypt_reg = DECRYPT then
                         if ValidAscii(ram_data_out, ACCEPT_HEX) then
                             rc4_start  <= '1';
                             rc4_input_mux <= RC4_INPUT_MUX_HEX;
@@ -318,7 +355,7 @@ begin
                 end if;
             when ReadRc4 =>
                 if tx_full = '0' then
-                    if encrypt_decrypt = DECRYPT then
+                    if encrypt_decrypt_reg = DECRYPT then
                         output_reg_mux <= OUTPUT_MUX_RC4_ASCII;
                         wr_uart        <= '1';
                         addr_cnt_en    <= '1';
@@ -347,6 +384,9 @@ begin
                     addr_cnt_en     <= '1';
                     state_next      <= LoopState;
                 end if;
+            when RamAddrIncrementState =>
+                addr_cnt_en <= '1';
+                state_next <= gotoState;
 
             when STOP =>
         end case;

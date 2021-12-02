@@ -44,8 +44,10 @@ architecture Behavioral of StringRom is
             if(stringLine(1) = '\' and stringLine(2) = 'n') then
                 stringLine := (others => ' '); -- read(currentLine, tempWord);
             end if;
-            result(lineNumber) := (stringLine & character'val(16#0d#) & character'val(16#0A#));
-            lineNumber := lineNumber + 1;
+            if stringLine(1) /= ';' then
+                result(lineNumber) := (stringLine & character'val(16#0d#) & character'val(16#0A#));
+                lineNumber := lineNumber + 1;
+            end if;
         end loop;
         stringLine := (others => ']');
         while lineNumber < DataSize loop
