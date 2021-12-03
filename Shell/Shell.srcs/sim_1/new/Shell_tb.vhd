@@ -24,7 +24,7 @@ architecture Behavioral of Shell_tb is
 	signal RsTx : STD_LOGIC;
 	signal seg : STD_LOGIC_VECTOR (7 downto 0);
 	signal an : STD_LOGIC_VECTOR (3 downto 0);
-	signal cipher_select_signal : STD_LOGIC;
+	--signal cipher_select_signal : STD_LOGIC;
 	signal led_signal : STD_LOGIC;
 
 	Component Shell is
@@ -32,7 +32,7 @@ architecture Behavioral of Shell_tb is
 			   rst : in STD_LOGIC;
 			   RsRx : in STD_LOGIC;
 			   RsTx : out STD_LOGIC;
-			   cipher_select_signal : in STD_LOGIC;
+			   --cipher_select_signal : in STD_LOGIC;
 			   led_signal : out STD_LOGIC;
 			   seg : out STD_LOGIC_VECTOR (7 downto 0);
 			   an : out STD_LOGIC_VECTOR (3 downto 0));
@@ -149,7 +149,7 @@ begin
 		rst => rst,
 		RsRx => RsRx,
 		RsTx => rx,
-		cipher_select_signal => cipher_select_signal,
+		--cipher_select_signal => cipher_select_signal,
 		led_signal => led_signal
 	);
 
@@ -183,7 +183,32 @@ begin
 		expectedVal <= x"3e";
 		readUart(expectedVal);
 		report "Got >";
-
+		
+		-- Send -c a
+		writeUart(x"2d", RsRx, BITRATE);
+		expectedVal <= x"2d";
+		readUart(expectedVal);
+		report "Got -";
+		
+		writeUart(x"63", RsRx, BITRATE);
+		expectedVal <= x"63";
+		readUart(expectedVal);
+		report "Got c";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
+		
+		writeUart(x"61", RsRx, BITRATE);
+		expectedVal <= x"61";
+		readUart(expectedVal);
+		report "Got a";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
 
 		-- Test plaintext input echo
 		for i in plaintext_input'range loop 
@@ -194,7 +219,7 @@ begin
 		end loop;
 
 		-- Switch to Autoclave cipher and select encrypt 
-		cipher_select_signal <= '0';
+		--cipher_select_signal <= '0';
 		-- Send CR
 		writeUart(x"0d", RsRx, BITRATE);
 		-- Test for LFCR after sending CR (Should have been CRLF)
@@ -225,6 +250,32 @@ begin
 		expectedVal <= x"3e";
 		readUart(expectedVal);
 		report "Got >";
+		
+		-- Send -c a
+		writeUart(x"2d", RsRx, BITRATE);
+		expectedVal <= x"2d";
+		readUart(expectedVal);
+		report "Got -";
+		
+		writeUart(x"63", RsRx, BITRATE);
+		expectedVal <= x"63";
+		readUart(expectedVal);
+		report "Got c";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
+		
+		writeUart(x"61", RsRx, BITRATE);
+		expectedVal <= x"61";
+		readUart(expectedVal);
+		report "Got a";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
 
 		 -- Test for echo
 		for i in autoclave_decrypt_input'range loop 
@@ -235,7 +286,7 @@ begin
 		end loop;
 
 		 -- Switch to decrypt and send CR
-		cipher_select_signal <= '0';
+		--cipher_select_signal <= '0';
 		writeUart(x"0d", RsRx, BITRATE);
 
 		-- Test for LFCR after sending CR (Should have been CRLF)
@@ -265,6 +316,32 @@ begin
 		expectedVal <= x"3e";
 		readUart(expectedVal);
 		report "Got >";
+		
+		-- Send -c r
+		writeUart(x"2d", RsRx, BITRATE);
+		expectedVal <= x"2d";
+		readUart(expectedVal);
+		report "Got -";
+		
+		writeUart(x"63", RsRx, BITRATE);
+		expectedVal <= x"63";
+		readUart(expectedVal);
+		report "Got c";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
+		
+		writeUart(x"72", RsRx, BITRATE);
+		expectedVal <= x"72";
+		readUart(expectedVal);
+		report "Got r";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
 
 		 -- Test for echo
 		for i in plaintext_input'range loop 
@@ -275,7 +352,7 @@ begin
 		end loop;
 
 		 -- Switch to RC4 and send CR (We will encode)
-		cipher_select_signal <= '1';
+		--cipher_select_signal <= '1';
 		writeUart(x"0d", RsRx, BITRATE);
 		-- Test for LFCR after sending CR (Should have been CRLF)
 		expectedVal <= x"0a";
@@ -343,7 +420,7 @@ begin
 		end loop;
 
 		 -- Switch to decrypt and send CR
-		cipher_select_signal <= '1';
+		--cipher_select_signal <= '1';
 		writeUart(x"0d", RsRx, BITRATE);
 
 		-- Test for LFCR after sending CR (Should have been CRLF)

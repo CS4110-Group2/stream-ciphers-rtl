@@ -25,10 +25,9 @@ entity ControlPath is
            rc4_input_mux           : out STD_LOGIC;
            autoclave_clear         : out STD_LOGIC;
            autoclave_start         : out STD_LOGIC;
-           cipher_select_signal    : in  STD_LOGIC;
            opcode_reg_load         : out STD_LOGIC;
            opcode_reg_clear        : out STD_LOGIC;
-           hex_to_ascii_load            : out STD_LOGIC;
+           hex_to_ascii_load       : out STD_LOGIC;
            ascii_to_hex_lsb_msb    : out STD_LOGIC;  
            output_reg_mux          : out STD_LOGIC_VECTOR(2 downto 0);
            ascii_in                : in  STD_LOGIC_VECTOR (7 downto 0);
@@ -45,7 +44,7 @@ end ControlPath;
 
 architecture Behavioral of ControlPath is
 
-    type FSM is (Init, HandlePrompt, WaitRx, LoopState, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP, StartRc4, HandleAutoclave, ReadRc4, WaitForRc4, RamAddrIncrementState);
+    type FSM is (Init, HandlePrompt, WaitRx, LoopState, HandleEnter, HandleBackspace, PrintHelp, ParseCommand, STOP, StartRc4, HandleAutoclave, ReadRc4, WaitForRc4, RamAddrIncrementState, ParseCipher);
     signal state_reg, state_next : FSM := Init;
 
     signal i_cnt, i_cnt_next : integer := 0;
@@ -60,16 +59,16 @@ architecture Behavioral of ControlPath is
     constant OUTPUT_MUX_MENUROM   : std_logic_vector(2 downto 0) := "100";
     constant OUTPUT_MUX_AUTOCLAVE : std_logic_vector(2 downto 0) := "101";
 
-    constant ENCRYPT : std_logic := '1';
-    constant DECRYPT : std_logic := '0';
+    constant ENCRYPT             : std_logic := '1';
+    constant DECRYPT             : std_logic := '0';
     constant RC4_INPUT_MUX_ASCII : std_logic := '0';
-    constant RC4_INPUT_MUX_HEX : std_logic := '1';
+    constant RC4_INPUT_MUX_HEX   : std_logic := '1';
 
     constant CIPHER_RC4       : std_logic := '1';
     constant CIPHER_AUTOCLAVE : std_logic := '0';
 
-    constant HELP_START_ADDRESS : std_logic_vector(7 downto 0) := x"00";
-    constant HELP_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"10";
+    constant HELP_START_ADDRESS            : std_logic_vector(7 downto 0) := x"00";
+    constant HELP_STOP_ADDRESS             : std_logic_vector(7 downto 0) := x"10";
     constant ILLEGAL_COMMAND_START_ADDRESS : std_logic_vector(7 downto 0) := x"10";
     constant ILLEGAL_COMMAND_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"11";
 
@@ -81,20 +80,21 @@ architecture Behavioral of ControlPath is
     constant BACKSPACE   : std_logic_vector(7 downto 0) := x"08";
     constant DASH        : std_logic_vector(7 downto 0) := x"2D";
 
-    constant HELPCOMMAND : std_logic_vector(7 downto 0) := x"68";
+    constant HELPCOMMAND    : std_logic_vector(7 downto 0) := x"68";
     constant ENCRYPTCOMMAND : std_logic_vector(7 downto 0) := x"65";
     constant DECRYPTCOMMAND : std_logic_vector(7 downto 0) := x"64";
-    constant RESETCOMMAND : std_logic_vector(7 downto 0) := x"71";
+    constant RESETCOMMAND   : std_logic_vector(7 downto 0) := x"71";
+    constant CIPHERCOMMAND  : std_logic_vector(7 downto 0) := x"63";
 
-    constant ACCEPT_HEX : std_logic := '1';
-    constant ACCEPT_ASCII : std_logic := '0';
-    constant ASCII_START : std_logic_vector(7 downto 0) := x"21";
-    constant ASCII_STOP  : std_logic_vector(7 downto 0) := x"7E";
-    constant HEX_NUM_START : std_logic_vector(7 downto 0) := x"30";
-    constant HEX_NUM_STOP  : std_logic_vector(7 downto 0) := x"39";
-    constant HEX_CHAR_UPPER_START  : std_logic_vector(7 downto 0) := x"41";
+    constant ACCEPT_HEX           : std_logic := '1';
+    constant ACCEPT_ASCII         : std_logic := '0';
+    constant ASCII_START          : std_logic_vector(7 downto 0) := x"21";
+    constant ASCII_STOP           : std_logic_vector(7 downto 0) := x"7E";
+    constant HEX_NUM_START        : std_logic_vector(7 downto 0) := x"30";
+    constant HEX_NUM_STOP         : std_logic_vector(7 downto 0) := x"39";
+    constant HEX_CHAR_UPPER_START : std_logic_vector(7 downto 0) := x"41";
     constant HEX_CHAR_UPPER_STOP  : std_logic_vector(7 downto 0) := x"46";
-    constant HEX_CHAR_LOWER_START  : std_logic_vector(7 downto 0) := x"61";
+    constant HEX_CHAR_LOWER_START : std_logic_vector(7 downto 0) := x"61";
     constant HEX_CHAR_LOWER_STOP  : std_logic_vector(7 downto 0) := x"66";
 
     function ValidAscii( val : std_logic_vector(7 downto 0); only_hex : std_logic) return boolean is
@@ -115,9 +115,10 @@ architecture Behavioral of ControlPath is
     end function;
 
 
-    signal current_menu_stop_address : std_logic_vector(7 downto 0);
-    signal gotoState : FSM;
+    signal current_menu_stop_address                 : std_logic_vector(7 downto 0);
+    signal gotoState                                 : FSM;
     signal encrypt_decrypt_reg, encrypt_decrypt_next : std_logic;
+    signal cipher_select_reg, cipher_select_next     : std_logic;
 
 begin
     process(clk, rst)
@@ -128,13 +129,14 @@ begin
         elsif rising_edge(clk) then
             state_reg <= state_next;
             encrypt_decrypt_reg <= encrypt_decrypt_next;
+            cipher_select_reg   <= cipher_select_next;
             i_cnt <= i_cnt_next;
         end if;
     end process;
 
     encrypt_decrypt <= encrypt_decrypt_reg;
 
-    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_done, rc4_ready, encrypt_decrypt_reg, cipher_select_signal, addr_cnt_zero)
+    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_done, rc4_ready, encrypt_decrypt_reg, addr_cnt_zero)
     begin
         state_next              <= state_reg;
         wr_uart                 <= '0';
@@ -150,7 +152,7 @@ begin
         autoclave_start         <= '0';
         opcode_reg_load         <= '0';
         opcode_reg_clear        <= '0';
-        hex_to_ascii_load            <= '0';
+        hex_to_ascii_load       <= '0';
         ascii_to_hex_lsb_msb    <= ASCII_TO_HEX_MSB;
         output_reg_mux          <= OUTPUT_MUX_INPUT;
         i_cnt_next              <= i_cnt;
@@ -160,7 +162,8 @@ begin
         menu_rom_addr_inc       <= '0';
         menu_rom_inc_char_cnt   <= '0';
         menu_rom_clear_char_cnt <= '0';
-        encrypt_decrypt_next     <= encrypt_decrypt_reg;
+        encrypt_decrypt_next    <= encrypt_decrypt_reg;
+        cipher_select_next      <= cipher_select_reg;
 
         case state_reg is
             when Init =>
@@ -273,6 +276,13 @@ begin
                     when RESETCOMMAND =>
                         -- rst <= '1';
                         -- state_next <= Init;
+                    when CIPHERCOMMAND =>
+                        addr_cnt_en <= '1';
+                        state_next <= RamAddrIncrementState;
+                        gotoState <= ParseCipher;
+                    when DASH =>
+                        addr_cnt_en <= '1';
+                        state_next <= ParseCommand;
                     when others =>
                         state_next <= PrintHelp;
                         menu_rom_addr_load_val <= ILLEGAL_COMMAND_START_ADDRESS;
@@ -282,6 +292,26 @@ begin
                         -- state_next <= LoopState;
                         addr_cnt_clear <= '1';
                 end case;
+            when ParseCipher =>
+                if ram_data_out = x"61" then
+                    addr_cnt_en <= '1';
+                    cipher_select_next <= CIPHER_AUTOCLAVE;
+                    state_next <= RamAddrIncrementState;
+                    gotoState <= ParseCommand;
+                elsif ram_data_out = x"72" then
+                    addr_cnt_en <= '1';
+                    cipher_select_next <= CIPHER_RC4;
+                    state_next <= RamAddrIncrementState;
+                    gotoState <= ParseCommand;
+                else
+                    state_next <= PrintHelp;
+                    menu_rom_addr_load_val <= ILLEGAL_COMMAND_START_ADDRESS;
+                    current_menu_stop_address <= ILLEGAL_COMMAND_STOP_ADDRESS;
+                    menu_rom_addr_load_en <= '1';
+                    menu_rom_clear_char_cnt <= '1';
+                    -- state_next <= LoopState;
+                    addr_cnt_clear <= '1';
+                end if;
             when LoopState =>
                 if tx_full = '0' then
                     if ram_data_out = ENTER then
@@ -294,7 +324,7 @@ begin
                         autoclave_clear  <= '1';
                         state_next       <= HandlePrompt;
                     else
-                        if cipher_select_signal = CIPHER_RC4 then
+                        if cipher_select_reg = CIPHER_RC4 then
                             state_next <= StartRc4;
                             if encrypt_decrypt_reg = DECRYPT then
                                 if ValidAscii(ram_data_out, ACCEPT_HEX) then

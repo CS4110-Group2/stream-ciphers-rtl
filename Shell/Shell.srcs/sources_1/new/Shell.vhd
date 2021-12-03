@@ -9,7 +9,6 @@ entity Shell is
            rst                    : in  STD_LOGIC;
            RsRx                   : in  STD_LOGIC;
            RsTx                   : out STD_LOGIC;
-           cipher_select_signal   : in  STD_LOGIC;
            led_signal             : out STD_LOGIC;
            seg                    : out STD_LOGIC_VECTOR (7 downto 0);
            an                     : out STD_LOGIC_VECTOR (3 downto 0));
@@ -128,7 +127,6 @@ begin
         rc4_input_mux           => rc4_input_mux,
         autoclave_start         => autoclave_start,
         autoclave_clear         => autoclave_clear,
-        cipher_select_signal    => cipher_select_signal,
         encrypt_decrypt => encrypt_decrypt_signal
     );
 
@@ -276,7 +274,7 @@ begin
         clear    => rc4_clear
     );
 
-    autoclave: entity work.autoclave_top_level(str_arch)
+    autoclave: entity work.autoclave_top_level(Behavioral)
     port map
     (
         clk => clk,
