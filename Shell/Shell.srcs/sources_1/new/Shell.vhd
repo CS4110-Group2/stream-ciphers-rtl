@@ -2,6 +2,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use work.Shell_Constants.all;
 
 
 entity Shell is
@@ -76,17 +77,19 @@ begin
 
     opcode_reg_in <= ram_data_out;
 
-    rc4_data_in       <= ram_data_out when rc4_input_mux = '0' else
-                         hex_to_ascii_out;
+    rc4_data_in <= ram_data_out when rc4_input_mux = '0' else
+                   hex_to_ascii_out;
 
     autoclave_data_in <= ram_data_out;
 
-    ascii_out <= ascii_in          when output_reg_mux = "000" else
-                 rc4_data_out      when output_reg_mux = "001" else
-                 ascii_to_hex_out      when output_reg_mux = "010" else
-                 custom_out        when output_reg_mux = "011" else
-                 menu_rom_data_out when output_reg_mux = "100" else
+    ascii_out <= ascii_in          when output_reg_mux = OUTPUT_MUX_INPUT else
+                 rc4_data_out      when output_reg_mux = OUTPUT_MUX_RC4_ASCII else
+                 ascii_to_hex_out  when output_reg_mux = OUTPUT_MUX_RC4_HEX else
+                 custom_out        when output_reg_mux = OUTPUT_MUX_CUSTOM else
+                 menu_rom_data_out when output_reg_mux = OUTPUT_MUX_MENUROM else
                  autoclave_data_out;
+    
+    led_signal <= encrypt_decrypt_signal;
 
 
 
@@ -278,13 +281,12 @@ begin
     port map
     (
         clk => clk,
-        reset => rst,
+        rst => rst,
         start => autoclave_start,
-        clr   => autoclave_clear,
-        ascii_in => autoclave_data_in,
-        ascii_out => autoclave_data_out,
-        switchEncrypt => encrypt_decrypt_signal,
-        ledEncrypt    => led_signal
+        clear   => autoclave_clear,
+        data_in => autoclave_data_in,
+        data_out => autoclave_data_out,
+        encrypt_decrypt_signal => encrypt_decrypt_signal
     );
 
 end Behavioral;

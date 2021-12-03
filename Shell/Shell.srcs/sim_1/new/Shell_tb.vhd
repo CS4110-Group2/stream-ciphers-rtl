@@ -7,8 +7,7 @@ use std.env.finish;
 use IEEE.std_logic_textio.all;
 
 entity Shell_tb is
---  Port ( );
-	end Shell_tb;
+end Shell_tb;
 
 architecture Behavioral of Shell_tb is
 	constant BAUDRATE : integer := 19200;
