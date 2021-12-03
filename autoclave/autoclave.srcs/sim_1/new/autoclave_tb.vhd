@@ -1,121 +1,91 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
-----------------------------------------------------------------------------------
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+use ieee.math_real.all;
+use std.env.finish;
+use IEEE.std_logic_textio.all;
 
 entity autoclave_tb is
-    -- Port ();
 end autoclave_tb;
 
-architecture arch of autoclave_tb is
+architecture Behavioral of autoclave_tb is
+
     constant clk_period : time := 10 ns;
-    constant bit_period : time := 52083ns; -- time for 1 bit.. 1bit/19200bps = 52.08 us
+    constant bitrate    : integer := 19200;
+    constant plaintext  : string := "Attack at Dawn";
+    constant ciphertext : string := "Sxvrgd am Wayx";
 
-    constant rx_data_ascii_space: std_logic_vector(7 downto 0) := x"20"; -- receive "space"
-    constant rx_data_ascii_enter: std_logic_vector(7 downto 0) := x"0D"; -- receive "enter"
-    constant rx_data_ascii_C: std_logic_vector(7 downto 0) := x"43"; -- receive C
-    constant rx_data_ascii_D: std_logic_vector(7 downto 0) := x"44"; -- receive D
-    constant rx_data_ascii_E: std_logic_vector(7 downto 0) := x"45"; -- receive E
-    constant rx_data_ascii_H: std_logic_vector(7 downto 0) := x"48"; -- receive H
-    constant rx_data_ascii_I: std_logic_vector(7 downto 0) := x"49"; -- receive I
-    constant rx_data_ascii_L: std_logic_vector(7 downto 0) := x"4C"; -- receive L
-    constant rx_data_ascii_N: std_logic_vector(7 downto 0) := x"4E"; -- receive N
-    constant rx_data_ascii_O: std_logic_vector(7 downto 0) := x"4F"; -- receive O
-    constant rx_data_ascii_P: std_logic_vector(7 downto 0) := x"50"; -- receive P
-    constant rx_data_ascii_R: std_logic_vector(7 downto 0) := x"52"; -- receive R
-    constant rx_data_ascii_S: std_logic_vector(7 downto 0) := x"53"; -- receive S
-    constant rx_data_ascii_V: std_logic_vector(7 downto 0) := x"56"; -- receive V
-    constant rx_data_ascii_W: std_logic_vector(7 downto 0) := x"57"; -- receive W
-    constant rx_data_ascii_Z: std_logic_vector(7 downto 0) := x"5A"; -- receive Z
-    
-    Component autoclave_top_level
-        Port ( reset, clk: in std_logic;
-             start, clr: in std_logic;
-             ascii_in: in std_logic_vector(7 downto 0);
-             ascii_out: out std_logic_vector(7 downto 0);
-             switchEncrypt: in std_logic;
-             ledEncrypt: out std_logic);
-    end Component;
+    signal clk_tb, rst_tb            : std_logic;
+    signal start_tb, clear_tb        : std_logic;
+    signal encrypt_decrypt_signal_tb : std_logic;
+    signal data_in_tb, data_out_tb   : std_logic_vector(7 downto 0);
 
-    signal clk, reset: std_logic;
-    signal start, clr: std_logic;
-    signal switchEncrypt: std_logic;
-    signal ascii_in, ascii_out: std_logic_vector(7 downto 0);
+    procedure write_byte
+    (
+        constant byte      : in  std_logic_vector (7 downto 0);
+        signal ascii_in_tb : out std_logic_vector (7 downto 0);
+        signal start_tb    : out std_logic
+    )
+    is
+    begin
+        ascii_in_tb <= byte;
+        wait for clk_period;
+        start_tb <= '1';
+        wait for clk_period;
+        start_tb <= '0';
+    end procedure write_byte;
 
 begin
-    uut: autoclave_top_level
-        Port Map(clk => clk, reset => reset,
-                 start => start, clr => clr,
-                 ascii_in => ascii_in, ascii_out => ascii_out,
-                 switchEncrypt=>switchEncrypt );
 
-    clk_process: process
+    UUT: entity work.autoclave_top_level(Behavioral)
+    Port Map(
+        clk                    => clk_tb,
+        rst                    => rst_tb,
+        start                  => start_tb,
+        clear                  => clear_tb,
+        data_in                => data_in_tb,
+        data_out               => data_out_tb,
+        encrypt_decrypt_signal => encrypt_decrypt_signal_tb
+     );
+
+    process
     begin
-        clk <= '0';
+        clk_tb <= '0';
         wait for clk_period/2;
-        clk <= '1';
+        clk_tb <= '1';
         wait for clk_period/2;
     end process;
 
-    stim: process
-    procedure SendMessage( msg : std_logic_vector( 7 downto 0 ) ) is
-    begin
-        ascii_in <= msg;
-        wait for clk_period;
-        start <= '1';
-        wait for clk_period;
-        start <= '0';
---        wait for clk_period;
-    end procedure;
-    
+    process
     begin
         -- Test encryption
-        reset <= '1';
+        rst_tb <= '1';
         wait for clk_period*2;
-        reset <= '0';
+        rst_tb <= '0';
         wait for clk_period*2;
-        switchEncrypt <='1';
-        wait for clk_period*2;
-        SendMessage( rx_data_ascii_H );
-        SendMessage( rx_data_ascii_E );
-        SendMessage( rx_data_ascii_L );
-        SendMessage( rx_data_ascii_L );
-        SendMessage( rx_data_ascii_O );
-        SendMessage( rx_data_ascii_space );
-        SendMessage( rx_data_ascii_W );
-        SendMessage( rx_data_ascii_O );
-        SendMessage( rx_data_ascii_R );
-        SendMessage( rx_data_ascii_L );
-        SendMessage( rx_data_ascii_D );
-        SendMessage( rx_data_ascii_enter );
-        wait for clk_period*2;
-        
---        -- Test decryption
-        switchEncrypt <='0';
-        wait for clk_period*2;
-        clr <= '1';
-        wait for clk_period*2;
-        clr <= '0';
-        wait for clk_period*2;     
-        SendMessage( rx_data_ascii_Z );
-        SendMessage( rx_data_ascii_I );
-        SendMessage( rx_data_ascii_N );
-        SendMessage( rx_data_ascii_C );
-        SendMessage( rx_data_ascii_S );
-        SendMessage( rx_data_ascii_space );
-        SendMessage( rx_data_ascii_P );
-        SendMessage( rx_data_ascii_V );
-        SendMessage( rx_data_ascii_V );
-        SendMessage( rx_data_ascii_W );
-        SendMessage( rx_data_ascii_O );
-        SendMessage( rx_data_ascii_enter );
-        
-        wait;
+        encrypt_decrypt_signal_tb <='1';
 
+        for i in plaintext'range loop
+            write_byte(std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8)), data_in_tb, start_tb);
+            assert data_out_tb = std_logic_vector(to_unsigned(character'pos(ciphertext(i)), 8))
+                severity failure;
+        end loop;
+
+        -- Test decryption
+        encrypt_decrypt_signal_tb <='0';
+        wait for clk_period*2;
+        clear_tb <= '1';
+        wait for clk_period*2;
+        clear_tb <= '0';
+
+        for i in ciphertext'range loop
+            write_byte(std_logic_vector(to_unsigned(character'pos(ciphertext(i)), 8)), data_in_tb, start_tb);
+            assert data_out_tb = std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8))
+                severity failure;
+        end loop;
+
+        report "Test: OK";
+        finish;
     end process;
 
-end arch;
+end Behavioral;
