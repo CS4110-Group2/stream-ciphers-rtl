@@ -6,9 +6,7 @@ use ieee.math_real.all;
 use std.env.finish;
 use IEEE.std_logic_textio.all;
 
-entity Shell_tb is
-	--  Port ( );
-	end Shell_tb;
+entity Shell_tb is end Shell_tb;
 
 architecture Behavioral of Shell_tb is
 	constant BAUDRATE : integer := 19200;
@@ -28,7 +26,7 @@ architecture Behavioral of Shell_tb is
 	signal RsTx : STD_LOGIC;
 	signal seg : STD_LOGIC_VECTOR (7 downto 0);
 	signal an : STD_LOGIC_VECTOR (3 downto 0);
-	signal cipher_select_signal : STD_LOGIC;
+	--signal cipher_select_signal : STD_LOGIC;
 	signal led_signal : STD_LOGIC;
 
 
@@ -80,6 +78,8 @@ architecture Behavioral of Shell_tb is
 
 	constant encrypt_command : string := "-e ";
 	constant decrypt_command : string := "-d ";
+	constant rc4_select_command : string := "-c r ";
+	constant autoclave_select_command : string := "-c a ";
 	constant plaintext : string := "ATTACK AT DAWN";
 	constant plaintext_input : string := encrypt_command & plaintext;
 
@@ -114,7 +114,6 @@ begin
 		rst => rst,
 		RsRx => RsRx,
 		RsTx => RsTx,
-		cipher_select_signal => cipher_select_signal,
 		led_signal => led_signal
 	);
 
@@ -143,7 +142,32 @@ begin
 		------------------------------------------------------------------------------
 		-- TEST AUTOCLAVE ENCRYPT
 		------------------------------------------------------------------------------
-		cipher_select_signal <= '0';
+		-- Send -c a
+		writeUart(x"2d", RsRx, BITRATE);
+		expectedVal <= x"2d";
+		readUart(expectedVal);
+		report "Got -";
+		
+		writeUart(x"63", RsRx, BITRATE);
+		expectedVal <= x"63";
+		readUart(expectedVal);
+		report "Got c";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
+		
+		writeUart(x"61", RsRx, BITRATE);
+		expectedVal <= x"61";
+		readUart(expectedVal);
+		report "Got a";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
+
 		-- Test plaintext input echo
 		for i in plaintext_input'range loop 
 			writeUart(std_logic_vector(to_unsigned(character'pos(plaintext_input(i)), 8)), RsRx, BAUDRATE);
@@ -153,6 +177,7 @@ begin
 		end loop;
 		writeUart(x"0d", RsRx, BAUDRATE);
 		validateNewline(expectedVal);
+
 		-- Test Autoclave Encrypt
 		for i in autoclave_cipher'range loop 
 			expectedVal <= std_logic_vector(to_unsigned(character'pos(autoclave_cipher(i)), 8));
@@ -162,6 +187,31 @@ begin
 
 		validatePrompt(expectedVal);
 
+		-- Send -c a
+		writeUart(x"2d", RsRx, BITRATE);
+		expectedVal <= x"2d";
+		readUart(expectedVal);
+		report "Got -";
+		
+		writeUart(x"63", RsRx, BITRATE);
+		expectedVal <= x"63";
+		readUart(expectedVal);
+		report "Got c";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
+		
+		writeUart(x"61", RsRx, BITRATE);
+		expectedVal <= x"61";
+		readUart(expectedVal);
+		report "Got a";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
 
 		------------------------------------------------------------------------------
 		-- TEST AUTOCLAVE DECRYPT
@@ -183,11 +233,36 @@ begin
 		end loop;
 		validatePrompt(expectedVal);
 
+		
+		-- Send -c r
+		writeUart(x"2d", RsRx, BITRATE);
+		expectedVal <= x"2d";
+		readUart(expectedVal);
+		report "Got -";
+		
+		writeUart(x"63", RsRx, BITRATE);
+		expectedVal <= x"63";
+		readUart(expectedVal);
+		report "Got c";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
+		
+		writeUart(x"72", RsRx, BITRATE);
+		expectedVal <= x"72";
+		readUart(expectedVal);
+		report "Got r";
+		
+		writeUart(x"20", RsRx, BITRATE);
+		expectedVal <= x"20";
+		readUart(expectedVal);
+		report "Got SPACE";
 
 		------------------------------------------------------------------------------
 		-- TEST RC4 ENCRYPT
 		------------------------------------------------------------------------------
-		cipher_select_signal <= '1';
 		-- Test for echo
 		for i in plaintext_input'range loop 
 			writeUart(std_logic_vector(to_unsigned(character'pos(plaintext_input(i)), 8)), RsRx, BAUDRATE);
@@ -209,7 +284,6 @@ begin
 		------------------------------------------------------------------------------
 		-- TEST RC4 DECRYPT and BACKSPACE
 		------------------------------------------------------------------------------
-		cipher_select_signal <= '1';
 		-- Test for echo
 		for i in decrypt_command'range loop 
 			writeUart(std_logic_vector(to_unsigned(character'pos(decrypt_command(i)), 8)), RsRx, BAUDRATE);

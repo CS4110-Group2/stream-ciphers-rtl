@@ -7,29 +7,32 @@ use ieee.numeric_std.all;
 
 entity autoclave_keystream_one_port_ram is
     generic(
-        ADDR_WIDTH: integer:=10; -- 1KB RAM
-        DATA_WIDTH: integer:=8
+        ADDR_WIDTH : INTEGER := 10; -- 1KB RAM
+        DATA_WIDTH : INTEGER := 8
     );
     port(
-        clk, reset: in std_logic;
-        start, clr: in std_logic;
-        din: in std_logic_vector(DATA_WIDTH-1 downto 0);
-        dout: out std_logic_vector(DATA_WIDTH-1 downto 0)
+        clk      : in  STD_LOGIC;
+        rst      : in  STD_LOGIC;
+        clear    : in  STD_LOGIC;
+        start    : in  STD_LOGIC;
+        data_in  : in  STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
+        data_out : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0)
     );
 end autoclave_keystream_one_port_ram;
 
-architecture arch of autoclave_keystream_one_port_ram is
-    type ram_type is array (2**(ADDR_WIDTH - 5)-1 downto 0)
- of std_logic_vector (DATA_WIDTH-1 downto 0);
-    signal ram: ram_type;
-    signal data: std_logic_vector (DATA_WIDTH-1 downto 0);
-    signal addr: unsigned(ADDR_WIDTH - 1 downto 0);
-    signal update_addr: boolean;
+architecture Behavioral of autoclave_keystream_one_port_ram is
+    type ram_type is array (2**(ADDR_WIDTH - 5)-1 downto 0) 
+    of std_logic_vector (DATA_WIDTH-1 downto 0);
+
+    signal ram            : ram_type;
+    signal data           : std_logic_vector (DATA_WIDTH-1 downto 0);
+    signal address        : unsigned(ADDR_WIDTH - 1 downto 0);
+    signal update_address : boolean;
 
 begin
-    process (clk,reset)
+    process (clk, rst)
     begin
-        if reset='1' then
+        if rst = '1' then
             ram( 00 ) <= x"53"; -- S
             ram( 01 ) <= x"45"; -- E
             ram( 02 ) <= x"43"; -- C
@@ -37,28 +40,29 @@ begin
             ram( 04 ) <= x"45"; -- E
             ram( 05 ) <= x"54"; -- T
 
-            addr <= (others=>'0');
-            update_addr <= false;
+            address        <= (others=>'0');
+            update_address <= false;
         elsif rising_edge(clk) then
-            if(clr = '1') then
-                addr <= (others=>'0');
-                update_addr <= false;
-            elsif(start = '1') then
+            if clear = '1' then
+                address        <= (others=>'0');
+                update_address <= false;
+            elsif start = '1' then
                 -- Uppercase
-                if ( ( din >= x"41" ) and ( din <= x"5A") ) then
-                    ram(to_integer(unsigned(addr) + 6)) <= din;
-                    update_addr <= true;
+                if ( ( data_in >= x"41" ) and ( data_in <= x"5A") ) then
+                    ram(to_integer(unsigned(address) + 6)) <= data_in;
+                    update_address                         <= true;
                 -- If lowercase ( convert to uppercase )
-                elsif ( ( din >= x"61" ) and ( din <= x"7A") ) then
-                    ram(to_integer(unsigned(addr) + 6)) <= std_logic_vector( unsigned(din) - x"20" );
-                    update_addr <= true;
+                elsif ( ( data_in >= x"61" ) and ( data_in <= x"7A") ) then
+                    ram(to_integer(unsigned(address) + 6)) <= std_logic_vector( unsigned(data_in) - x"20" );
+                    update_address                         <= true;
                 end if;
-            elsif(start = '0' and update_addr = true) then
-                update_addr <= false;
-                addr <= addr + 1;
+            elsif (start = '0' and update_address = true) then
+                update_address <= false;
+                address        <= address + 1;
             end if;
         end if;
     end process;
 
-    dout <= ram(to_integer(unsigned(addr)));
-end arch;
+    data_out <= ram(to_integer(unsigned(address)));
+
+end Behavioral;
