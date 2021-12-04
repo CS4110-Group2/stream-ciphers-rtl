@@ -10,6 +10,7 @@ entity StringRom is
     Generic(AddrSize : Integer := 7;
             DataSize : Integer := 50); 
     Port ( clk : in STD_LOGIC; 
+           rst : in STD_LOGIC; 
            addr :           in STD_LOGIC_VECTOR (AddrSize-1 downto 0);
            -- dataOut :    out string(1 to DataSize));
            dataOut :    out STD_LOGIC_VECTOR(7 downto 0);
@@ -59,15 +60,15 @@ architecture Behavioral of StringRom is
     
     signal memory : memory_type := getFile("../../../menurom.txt");
 
-
-
 begin
 
-    process(clk)
+    process(clk, rst)
         variable cnt : integer RANGE 1 to DataSize;
         variable I : integer RANGE 0 to (2**AddrSize);
     begin
-        if(rising_edge(clk)) then
+        if rst = '1' then
+            cnt := 1;
+        elsif(rising_edge(clk)) then
             if(clear_char_cnt = '1') then
                 cnt := 1;
             else

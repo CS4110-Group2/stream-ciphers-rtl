@@ -10,9 +10,7 @@ entity Shell is
            rst                    : in  STD_LOGIC;
            RsRx                   : in  STD_LOGIC;
            RsTx                   : out STD_LOGIC;
-           led_signal             : out STD_LOGIC;
-           seg                    : out STD_LOGIC_VECTOR (7 downto 0);
-           an                     : out STD_LOGIC_VECTOR (3 downto 0));
+           led_signal             : out STD_LOGIC);
 end Shell;
 
 architecture Behavioral of Shell is
@@ -143,6 +141,7 @@ begin
     Port Map
     (
         clk => clk,
+        rst => rst,
         addr => menu_rom_addr,
         dataOut => menu_rom_data_out,
         inc_char_cnt => menu_rom_inc_char_cnt,
@@ -213,6 +212,7 @@ begin
     ( 
         clk => clk,
         en => addr_cnt_en,
+        rst => rst,
         up_down => addr_cnt_up_down,
         clr => addr_cnt_clear,
         zero => addr_cnt_zero,
@@ -253,16 +253,6 @@ begin
         lsb_msb => ascii_to_hex_lsb_msb
     );
 
-    display: entity work.SixteenBitDisplay(Behavioral)
-    Port map
-    ( 
-        sw(15 downto 8) => ascii_in,
-        sw(7 downto 0) => ascii_out,
-        clk => clk,
-        rst => rst,
-        seg => seg,
-        an => an
-    );
 
     rc4: entity work.rc4_top_level(Behavioral)
     port map

@@ -10,6 +10,7 @@ entity ModMCounterUpDown is
     Generic( N : integer := 4;
              M : Integer := 16);
     Port ( en : in STD_LOGIC;
+           rst : in STD_LOGIC; 
            up_down : in STD_LOGIC;
            clk : in STD_LOGIC;
            clr : in STD_LOGIC;
@@ -22,7 +23,7 @@ architecture Behavioral of ModMCounterUpDown is
 
 begin
 
-    process(clk)
+    process(clk, rst, up_down)
     variable cnt : integer RANGE 0 to M-1;
     variable direction : integer;
     begin
@@ -32,7 +33,9 @@ begin
             direction := -1;
         end if;
 
-        if(rising_edge(clk)) then
+        if rst = '1' then
+            cnt := 0;
+        elsif(rising_edge(clk)) then
             if(clr = '1') then
                 cnt := 0;
             else

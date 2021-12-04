@@ -23,6 +23,7 @@ architecture Behavioral of autoclave_tb is
     procedure write_byte
     (
         constant byte      : in  std_logic_vector (7 downto 0);
+        constant solution  : in  std_logic_vector (7 downto 0);
         signal ascii_in_tb : out std_logic_vector (7 downto 0);
         signal start_tb    : out std_logic
     )
@@ -30,6 +31,8 @@ architecture Behavioral of autoclave_tb is
     begin
         ascii_in_tb <= byte;
         wait for clk_period;
+        assert data_out_tb = solution
+            severity failure;
         start_tb <= '1';
         wait for clk_period;
         start_tb <= '0';
@@ -66,9 +69,7 @@ begin
         encrypt_decrypt_signal_tb <='1';
 
         for i in plaintext'range loop
-            write_byte(std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8)), data_in_tb, start_tb);
-            assert data_out_tb = std_logic_vector(to_unsigned(character'pos(ciphertext(i)), 8))
-                severity failure;
+            write_byte(std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8)), std_logic_vector(to_unsigned(character'pos(ciphertext(i)), 8)), data_in_tb, start_tb);
         end loop;
 
         -- Test decryption
@@ -79,9 +80,8 @@ begin
         clear_tb <= '0';
 
         for i in ciphertext'range loop
-            write_byte(std_logic_vector(to_unsigned(character'pos(ciphertext(i)), 8)), data_in_tb, start_tb);
-            assert data_out_tb = std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8))
-                severity failure;
+            write_byte(std_logic_vector(to_unsigned(character'pos(ciphertext(i)), 8)), std_logic_vector(to_unsigned(character'pos(plaintext(i)), 8))
+,data_in_tb, start_tb);
         end loop;
 
         report "Test: OK";

@@ -17,4 +17,13 @@ Help
 	-h
 \n
 ;Parse error:
-Illegal input
+Illegal Command Received
+;Cipher command error:
+Illegal Cipher Command Received
+;Cipher input error:
+Illegal Cipher Received
+;Selected RC4
+Selected Cipher RC4
+;Selected Autocalve
+Selected Cipher Autoclave
+\n
