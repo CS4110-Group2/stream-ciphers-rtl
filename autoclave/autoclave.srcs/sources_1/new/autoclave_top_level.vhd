@@ -26,6 +26,7 @@ architecture Behavioral of autoclave_top_level is
 
     signal update_key, load_ram, inc_address, clear_address : std_logic;
     signal ram_address : std_logic_vector(RAM_ADDR_WIDTH-1 downto 0);
+    signal ram_counter_enable : std_logic;
 
 begin
     ascii_k <= data_in when encrypt_decrypt_signal = '1' else cipher;
@@ -33,6 +34,8 @@ begin
 
     update_key <= '1' when ( ( ( data_in >= x"41" ) and ( data_in <= x"5A") ) or ( ( data_in >= x"61" ) and ( data_in <= x"7A") ) ) and start = '1' else
                   '0';
+
+    ram_counter_enable <= update_key or clear; 
                 
     keystream_ram_unit: entity work.autoclave_keystream_one_port_ram(Behavioral)
     generic map(ADDR_WIDTH => RAM_ADDR_WIDTH, DATA_WIDTH => RAM_DATA_WIDTH )
@@ -60,7 +63,7 @@ begin
     )
     port map
     (
-        en => update_key or clear,
+        en => ram_counter_enable,
         rst => rst,
         clk => clk,
         clr => clear,
