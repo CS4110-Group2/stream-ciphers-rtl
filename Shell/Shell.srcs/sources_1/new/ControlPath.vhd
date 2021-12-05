@@ -349,7 +349,13 @@ begin
                             rc4_input_mux <= RC4_INPUT_MUX_HEX;
                             state_next    <= WaitForRc4;
                         else
-                            --go to illegal command received
+                            menu_rom_addr_load_val <= ILLEGAL_CIPHER_START_ADDRESS;
+                            current_menu_stop_address_next <= ILLEGAL_CIPHER_STOP_ADDRESS;
+                            menu_rom_addr_load_en <= '1';
+                            menu_rom_clear_char_cnt <= '1';
+                            addr_cnt_clear <= '1';
+                            state_next <= WaitState;
+                            gotoState <= PrintHelp;
                         end if;
                     else --if ENCRYPT
                         rc4_start  <= '1';

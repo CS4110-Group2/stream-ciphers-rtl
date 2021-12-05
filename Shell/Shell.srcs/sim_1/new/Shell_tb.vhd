@@ -107,6 +107,7 @@ architecture Behavioral of Shell_tb is
 	constant illegal_cipher_command_input : string :=	"-c xajfkldfdsafdsaf";
 	constant illegal_cipher_command_output : string :=	"Illegal Cipher Command Received                 ";
 	constant illegal_cipher_input : string := "-d XX";
+	constant illegal_cipher_input2 : string := "-d AB123X";
 	constant illegal_cipher_output : string :=			"Illegal Cipher Received                         ";
 	constant rc4_selected_response : string :=			"Selected Cipher RC4                             ";
 	constant autoclave_selected_response : string :=	"Selected Cipher Autoclave                       ";
@@ -145,65 +146,65 @@ begin
 		-- Assuming that print help is skipped. 
 		validatePrompt(expectedVal);
 
-		--------------------------------------------------------------------------------
-		---- TEST ILLEGAL INPUT
-		--------------------------------------------------------------------------------
-		--for i in illegal_input'range loop 
-		--	writeUart(std_logic_vector(to_unsigned(character'pos(illegal_input(i)), 8)), RsRx, BAUDRATE);
-		--	expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_input(i)), 8));
-		--	validateReceivedByte(expectedVal);
-		--	report "Illegal input";
-		--end loop;
-		--writeUart(x"0d", RsRx, BAUDRATE);
-		--validateNewline(expectedVal);
-		--for i in illegal_output'range loop 
-		--	expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_output(i)), 8));
-		--	-- expectedVal <= x"00";
-		--	validateReceivedByte(expectedVal);
-		--	report "Illegal Output";
-		--end loop;
-		--validateNewline(expectedVal);
-		--validatePrompt(expectedVal);
+		------------------------------------------------------------------------------
+		-- TEST ILLEGAL INPUT
+		------------------------------------------------------------------------------
+		for i in illegal_input'range loop 
+			writeUart(std_logic_vector(to_unsigned(character'pos(illegal_input(i)), 8)), RsRx, BAUDRATE);
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_input(i)), 8));
+			validateReceivedByte(expectedVal);
+			report "Illegal input";
+		end loop;
+		writeUart(x"0d", RsRx, BAUDRATE);
+		validateNewline(expectedVal);
+		for i in illegal_output'range loop 
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_output(i)), 8));
+			-- expectedVal <= x"00";
+			validateReceivedByte(expectedVal);
+			report "Illegal Output";
+		end loop;
+		validateNewline(expectedVal);
+		validatePrompt(expectedVal);
 
-		--------------------------------------------------------------------------------
-		---- TEST ILLEGAL INPUT2
-		--------------------------------------------------------------------------------
-		--for i in illegal_input2'range loop 
-		--	writeUart(std_logic_vector(to_unsigned(character'pos(illegal_input2(i)), 8)), RsRx, BAUDRATE);
-		--	expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_input2(i)), 8));
-		--	validateReceivedByte(expectedVal);
-		--	report "Illegal input2";
-		--end loop;
-		--writeUart(x"0d", RsRx, BAUDRATE);
-		--validateNewline(expectedVal);
-		--for i in illegal_output'range loop 
-		--	expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_output(i)), 8));
-		--	-- expectedVal <= x"00";
-		--	validateReceivedByte(expectedVal);
-		--	report "Illegal Output2";
-		--end loop;
-		--validateNewline(expectedVal);
-		--validatePrompt(expectedVal);
+		------------------------------------------------------------------------------
+		-- TEST ILLEGAL INPUT2
+		------------------------------------------------------------------------------
+		for i in illegal_input2'range loop 
+			writeUart(std_logic_vector(to_unsigned(character'pos(illegal_input2(i)), 8)), RsRx, BAUDRATE);
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_input2(i)), 8));
+			validateReceivedByte(expectedVal);
+			report "Illegal input2";
+		end loop;
+		writeUart(x"0d", RsRx, BAUDRATE);
+		validateNewline(expectedVal);
+		for i in illegal_output'range loop 
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_output(i)), 8));
+			-- expectedVal <= x"00";
+			validateReceivedByte(expectedVal);
+			report "Illegal Output2";
+		end loop;
+		validateNewline(expectedVal);
+		validatePrompt(expectedVal);
 
-		--------------------------------------------------------------------------------
-		---- TEST ILLEGAL INPUT CIPHER COMMAND
-		--------------------------------------------------------------------------------
-		--for i in illegal_cipher_command_input'range loop 
-		--	writeUart(std_logic_vector(to_unsigned(character'pos(illegal_cipher_command_input(i)), 8)), RsRx, BAUDRATE);
-		--	expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_cipher_command_input(i)), 8));
-		--	validateReceivedByte(expectedVal);
-		--	report "Illegal cipher command input";
-		--end loop;
-		--writeUart(x"0d", RsRx, BAUDRATE);
-		--validateNewline(expectedVal);
-		--for i in illegal_cipher_command_output'range loop 
-		--	expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_cipher_command_output(i)), 8));
-		--	-- expectedVal <= x"00";
-		--	validateReceivedByte(expectedVal);
-		--	report "Illegal cipher command Output";
-		--end loop;
-		--validateNewline(expectedVal);
-		--validatePrompt(expectedVal);
+		------------------------------------------------------------------------------
+		-- TEST ILLEGAL INPUT CIPHER COMMAND
+		------------------------------------------------------------------------------
+		for i in illegal_cipher_command_input'range loop 
+			writeUart(std_logic_vector(to_unsigned(character'pos(illegal_cipher_command_input(i)), 8)), RsRx, BAUDRATE);
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_cipher_command_input(i)), 8));
+			validateReceivedByte(expectedVal);
+			report "Illegal cipher command input";
+		end loop;
+		writeUart(x"0d", RsRx, BAUDRATE);
+		validateNewline(expectedVal);
+		for i in illegal_cipher_command_output'range loop 
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_cipher_command_output(i)), 8));
+			-- expectedVal <= x"00";
+			validateReceivedByte(expectedVal);
+			report "Illegal cipher command Output";
+		end loop;
+		validateNewline(expectedVal);
+		validatePrompt(expectedVal);
 
 		------------------------------------------------------------------------------
 		-- TEST SELECT AUTOCLAVE CIPHER
@@ -306,6 +307,27 @@ begin
 		end loop;
 		validateNewline(expectedVal);
 		validatePrompt(expectedVal);
+
+		------------------------------------------------------------------------------
+		-- TEST ILLEGAL INPUT CIPHER INPUT2
+		------------------------------------------------------------------------------
+		for i in illegal_cipher_input2'range loop 
+			writeUart(std_logic_vector(to_unsigned(character'pos(illegal_cipher_input2(i)), 8)), RsRx, BAUDRATE);
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_cipher_input2(i)), 8));
+			validateReceivedByte(expectedVal);
+			report "Illegal cipher input2";
+		end loop;
+		writeUart(x"0d", RsRx, BAUDRATE);
+		validateNewline(expectedVal);
+		for i in illegal_cipher_output'range loop 
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_cipher_output(i)), 8));
+			-- expectedVal <= x"00";
+			validateReceivedByte(expectedVal);
+			report "Illegal Cipher output2";
+		end loop;
+		validateNewline(expectedVal);
+		validatePrompt(expectedVal);
+
 		------------------------------------------------------------------------------
 		-- TEST RC4 ENCRYPT
 		------------------------------------------------------------------------------
