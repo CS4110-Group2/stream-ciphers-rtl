@@ -355,7 +355,7 @@ begin
                             menu_rom_clear_char_cnt <= '1';
                             addr_cnt_clear <= '1';
                             state_next <= WaitState;
-                            gotoState <= PrintHelp;
+                            goto_state_next <= PrintHelp;
                         end if;
                     else --if ENCRYPT
                         rc4_start  <= '1';
