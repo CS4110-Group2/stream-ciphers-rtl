@@ -69,7 +69,7 @@ begin
         ram_data_in_select <= '0';
         reg_j_select       <= '0';
         reg_tmp_select     <= '0';
-        load_reg_out <= '0';
+        load_reg_out       <= '0';
 
         case state_reg is
             when Reset_Cipher =>
@@ -149,7 +149,7 @@ begin
                 counter_i_inc      <= '1';
                 ready_next         <= '1';
                 done_next          <= '1';
-                load_reg_out <= '1';
+                load_reg_out       <= '1';
                 state_next         <= Wait_For_Start;
         end case;
     end process;
