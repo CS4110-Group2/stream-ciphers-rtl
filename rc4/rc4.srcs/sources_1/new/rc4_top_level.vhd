@@ -35,7 +35,10 @@ architecture Behavioral of rc4_top_level is
     signal counter_i_inc, counter_i_clear, counter_i_max_tick, counter_i_load : STD_LOGIC;
     signal counter_i_out                                                      : STD_LOGIC_VECTOR (7 downto 0);
 
+    signal rom_addr : std_logic_vector(7 downto 0);
+
     begin
+    rom_addr <= std_logic_vector(to_unsigned(to_integer(unsigned(counter_i_out) rem 8), rom_addr'length));
 
     ram: entity work.rc4_ram(Behavioral)
     port map(clk => clk, write => ram_write, address => ram_address,

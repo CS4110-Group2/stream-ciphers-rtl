@@ -7,6 +7,7 @@ entity rc4_rom is
            data_out : out STD_LOGIC_VECTOR (7 downto 0));
 end rc4_rom;
 
+
 architecture Behavioral of rc4_rom is
 
     type mem is array (0 to 7) of STD_LOGIC_VECTOR (7 downto 0);
@@ -25,7 +26,6 @@ architecture Behavioral of rc4_rom is
 
 begin
 
-    -- Only interested in the last three bits of the address.
-    data_out <= rom_block(to_integer(unsigned(address(2 downto 0))));
+    data_out <= rom_block(to_integer(unsigned(address)));
 
 end Behavioral;

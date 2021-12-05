@@ -16,7 +16,7 @@ end Shell;
 architecture Behavioral of Shell is
 
     --Uart stuff
-    signal rx_done_tick, wr_uart, tx_full, tx_empty : std_logic;
+    signal rx_done_tick, wr_uart, tx_full : std_logic;
     signal ascii_in, ascii_out : std_logic_vector(7 downto 0);
     --RAM stuff
     signal ram_write : std_logic;
@@ -99,7 +99,6 @@ begin
         rx_done_tick => rx_done_tick,
         wr_uart => wr_uart,
         tx_full => tx_full,
-        tx_empty => tx_empty,
         ram_write => ram_write,
         ram_clr => ram_clr,
         ram_data_out => ram_data_out,
@@ -180,7 +179,7 @@ begin
         tx => RsTx,
         tx_data => ascii_out,
         tx_full => tx_full,
-        tx_empty => tx_empty,
+        tx_empty => open,
         wr_uart => wr_uart
     );
 

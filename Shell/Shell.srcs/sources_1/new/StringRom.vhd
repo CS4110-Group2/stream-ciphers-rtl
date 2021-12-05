@@ -31,7 +31,6 @@ architecture Behavioral of StringRom is
         variable stringLine : string(1 to DataSize-2);
         variable result : memory_type := (others => (others => '0'));
         variable lineNumber : integer := 0;
-        variable I : integer;
     begin
         --Write enter and linefeed to first index
         while not endFile(fileHandle) loop

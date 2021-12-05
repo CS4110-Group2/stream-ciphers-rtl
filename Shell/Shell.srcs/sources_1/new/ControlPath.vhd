@@ -11,7 +11,6 @@ entity ControlPath is
            rx_done_tick            : in  STD_LOGIC;
            wr_uart                 : out STD_LOGIC;
            tx_full                 : in  STD_LOGIC;
-           tx_empty                : in  STD_LOGIC;
            ram_write               : out STD_LOGIC;
            ram_clr                 : out STD_LOGIC;
            ram_data_out            : in  STD_LOGIC_VECTOR(7 downto 0);
@@ -95,7 +94,7 @@ begin
 
     encrypt_decrypt <= encrypt_decrypt_reg;
 
-    process(state_reg, rx_done_tick, tx_empty, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_done, rc4_ready, encrypt_decrypt_reg, addr_cnt_zero, cipher_select_reg, goto_state_reg, current_menu_stop_address_reg)
+    process(state_reg, rx_done_tick, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_done, rc4_ready, encrypt_decrypt_reg, addr_cnt_zero, cipher_select_reg, goto_state_reg, current_menu_stop_address_reg)
     begin
         state_next                     <= state_reg;
         wr_uart                        <= '0';
