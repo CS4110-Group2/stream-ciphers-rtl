@@ -1,29 +1,23 @@
 ;Help menu (This is a comment)
 \n
-StreamCipher Project 1.0
-By V.Bodahl, K.Odde, S.Onarheim and S.Rudin
+StreamCipher Project 1.0\n
+By V.Bodahl, K.Odde, S.Onarheim and S.Rudin\n
 \n
-CipherSelection:
-	RC4:       SW0 - High
-	Autoclave: SW0 - Low
-\n
-Encrypt/Deprypt:
-	Encrypt:   SW1 - High
-	Decrypt:   SW1 - Low
-\n
-Asynchronous Reset:
-	BtnC
-Help
-	-h
+-h           : Print Help\n
+-e <input>   : Encrypt input\n
+-d <input>   : Decrypt input\n
+-c rc4       : Set cipher to RC4\n
+-c autoclave : Set cipher to AutoClave\n
+BtnC         : Async reset\n
 \n
 ;Parse error:
-Illegal Command Received
+Illegal Command Received\n
 ;Cipher command error:
-Illegal Cipher Command Received
+Illegal Cipher Command Received\n
 ;Cipher input error:
-Illegal Cipher Received
+Illegal Cipher Received\n
 ;Selected RC4
-Selected Cipher RC4
-;Selected Autocalve
-Selected Cipher Autoclave
+Selected Cipher RC4\n
+;Selected Autoclave
+Selected Cipher Autoclave\n
 \n

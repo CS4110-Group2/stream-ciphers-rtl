@@ -5,6 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.STD_LOGIC_TEXTIO.ALL;
 use STD.TEXTIO.ALL;
+use work.Shell_Constants.all;
      
 entity StringRom is
     Generic(AddrSize : Integer := 7;
@@ -28,41 +29,59 @@ architecture Behavioral of StringRom is
     impure function getFile(fileName : string) return memory_type is
         file fileHandle : TEXT open READ_MODE is FileName;
         variable currentLine : LINE;
-        variable stringLine : string(1 to DataSize-2);
+        variable stringLine : string(1 to DataSize);
         variable result : memory_type := (others => (others => '0'));
         variable lineNumber : integer := 0;
     begin
+        --Place newline sequence at index 0
+        result(lineNumber) := (others => ' ');
+        result(lineNumber)(1) := character'val(to_integer(unsigned(ENTER)));
+        result(lineNumber)(2) := character'val(to_integer(unsigned(LINEFEED)));
+        lineNumber := lineNumber + 1;
+        --Place prompt sequence at index 1
+        result(lineNumber) := (others => ' ');
+        result(lineNumber)(1) := character'val(to_integer(unsigned(PROMPT)));
+        lineNumber := lineNumber + 1;
+        --Place backspace sequence at index 2
+        result(lineNumber) := (others => ' ');
+        result(lineNumber)(1) := character'val(to_integer(unsigned(BACKSPACE)));
+        result(lineNumber)(2) := character'val(to_integer(unsigned(SPACE)));
+        result(lineNumber)(3) := character'val(to_integer(unsigned(BACKSPACE)));
+        lineNumber := lineNumber + 1;
         --Write enter and linefeed to first index
         while not endFile(fileHandle) loop
             readline(fileHandle, currentLine);
             assert currentLine'length < stringLine'length;
             stringLine := (others => ' ');
-            -- if currentLine'length > 0 then
             read(currentLine, stringLine(1 to currentLine'length));
-            -- end if;
-            --Handle empty lines
-            if(stringLine(1) = '\' and stringLine(2) = 'n') then
-                stringLine := (others => ' '); -- read(currentLine, tempWord);
-            end if;
-            if stringLine(1) /= ';' then
-                result(lineNumber) := (stringLine & character'val(16#0d#) & character'val(16#0A#));
-                lineNumber := lineNumber + 1;
+
+            if stringline(1) /= ';' then
+                for i in 1 to stringLine'length loop
+                    if(i > 1 and stringLine(i-1) = '\' and stringLine(i) = 'n') then
+                        result(lineNumber)(i-1) := character'val(to_integer(unsigned(ENTER)));
+                        result(lineNumber)(i) := character'val(to_integer(unsigned(LINEFEED)));
+                    else
+                        result(lineNumber)(i) := stringLine(i);
+                    end if;
+                end loop;
+            lineNumber := lineNumber + 1;
             end if;
         end loop;
         stringLine := (others => ']');
         while lineNumber < DataSize loop
-            result(lineNumber) := stringLine & "  ";
+            result(lineNumber) := stringLine;
             lineNumber := lineNumber + 1;
         end loop;
         return result;
     end function;
     
     signal memory : memory_type := getFile("../../../menurom.txt");
+    signal outBuf : std_logic_vector(7 downto 0);
+    shared variable cnt : integer RANGE 1 to DataSize;
 
 begin
 
     process(clk, rst)
-        variable cnt : integer RANGE 1 to DataSize;
         variable I : integer RANGE 0 to (2**AddrSize);
     begin
         if rst = '1' then
@@ -76,16 +95,12 @@ begin
                 end if;
             end if;
             I := to_integer(unsigned(addr));
-            dataOut <= std_logic_vector(to_unsigned(character'pos(memory(I)(cnt)), dataOut'length));
-            if cnt = DataSize then
-                line_done <= '1'; 
-            else
-                line_done <= '0';
-            end if;
+            outBuf <= std_logic_vector(to_unsigned(character'pos(memory(I)(cnt)), dataOut'length));
         end if;
-
-
     end process;
 
-    -- dataOut <= memory(to_integer(unsigned(addr)));
+    line_done <= '1' when cnt = DataSize or outBuf = LINEFEED or (outBuf = PROMPT and cnt = 1) or (outBuf = BACKSPACE and cnt = 3) else
+                   '0';
+    dataOut <= outBuf;
+
 end Behavioral;

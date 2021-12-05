@@ -102,17 +102,18 @@ architecture Behavioral of Shell_tb is
 	constant autoclave_decrypt_input : string := decrypt_command & autoclave_cipher;
 
 	constant illegal_input : string := "jfkldsa;jfkda";
-	constant illegal_output : string :=					"Illegal Command Received                        ";
+	constant illegal_output : string :=	"Illegal Command Received";
 	constant illegal_input2 : string := "-x jfkldsa;jfkda";
-	constant illegal_cipher_command_input : string :=	"-c xajfkldfdsafdsaf";
-	constant illegal_cipher_command_output : string :=	"Illegal Cipher Command Received                 ";
+	constant illegal_cipher_command_input : string := "-c xajfkldfdsafdsaf";
+	constant illegal_cipher_command_output : string := "Illegal Cipher Command Received";
 	constant illegal_cipher_input : string := "-d XX";
 	constant illegal_cipher_input2 : string := "-d 35X";
-	constant illegal_cipher_output : string :=			"Illegal Cipher Received                         ";
-	constant illegal_cipher_output2 : string :=			"AIllegal Cipher Received                         ";
-	constant rc4_selected_response : string :=			"Selected Cipher RC4                             ";
-	constant autoclave_selected_response : string :=	"Selected Cipher Autoclave                       ";
-
+	constant illegal_cipher_output : string := "Illegal Cipher Received";
+	constant illegal_cipher_output2 : string :=	"AIllegal Cipher Received";
+	constant rc4_selected_response : string := "Selected Cipher RC4";
+	constant autoclave_selected_response : string := "Selected Cipher Autoclave";
+	constant splash1 : string := "StreamCipher Project 1.0";
+	constant splash2 : string := "By V.Bodahl, K.Odde, S.Onarheim and S.Rudin";
 
 begin
 	UUT : entity work.Shell(Behavioral)
@@ -143,8 +144,23 @@ begin
 		------------------------------------------------------------------------------
 		-- TEST INIT
 		------------------------------------------------------------------------------
-		--wait for 375 ms;
-		-- Assuming that print help is skipped. 
+		validateNewline(expectedVal);
+		for i in splash1'range loop 
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(splash1(i)), 8));
+			-- expectedVal <= x"00";
+			validateReceivedByte(expectedVal);
+			report "Splash Screen 1";
+		end loop;
+		validateNewline(expectedVal);
+		for i in splash2'range loop 
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(splash2(i)), 8));
+			-- expectedVal <= x"00";
+			validateReceivedByte(expectedVal);
+			report "Splash Screen 2";
+		end loop;
+		validateNewline(expectedVal);
+
+		
 		validatePrompt(expectedVal);
 
 		------------------------------------------------------------------------------

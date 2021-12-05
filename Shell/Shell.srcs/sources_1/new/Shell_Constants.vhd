@@ -3,13 +3,13 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 package Shell_Constants is
     constant RC4_KEY : string := "ZAAAAAAA";
+    --TODO add autoclave key here too
     constant ASCII_TO_HEX_LSB     : std_logic := '0';
     constant ASCII_TO_HEX_MSB     : std_logic := '1';
 
     constant OUTPUT_MUX_INPUT     : std_logic_vector(2 downto 0) := "000";
     constant OUTPUT_MUX_RC4_ASCII : std_logic_vector(2 downto 0) := "001";
     constant OUTPUT_MUX_RC4_HEX   : std_logic_vector(2 downto 0) := "010";
-    constant OUTPUT_MUX_CUSTOM    : std_logic_vector(2 downto 0) := "011";
     constant OUTPUT_MUX_MENUROM   : std_logic_vector(2 downto 0) := "100";
     constant OUTPUT_MUX_AUTOCLAVE : std_logic_vector(2 downto 0) := "101";
 
@@ -21,18 +21,27 @@ package Shell_Constants is
     constant CIPHER_RC4       : std_logic := '1';
     constant CIPHER_AUTOCLAVE : std_logic := '0';
 
-    constant HELP_START_ADDRESS            : std_logic_vector(7 downto 0) := x"00";
-    constant HELP_STOP_ADDRESS             : std_logic_vector(7 downto 0) := x"11";
-    constant ILLEGAL_COMMAND_START_ADDRESS : std_logic_vector(7 downto 0) := x"11";
-    constant ILLEGAL_COMMAND_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"12";
-    constant ILLEGAL_CIPHER_COMMAND_START_ADDRESS : std_logic_vector(7 downto 0) := x"12";
-    constant ILLEGAL_CIPHER_COMMAND_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"13";
-    constant ILLEGAL_CIPHER_START_ADDRESS : std_logic_vector(7 downto 0) := x"13";
-    constant ILLEGAL_CIPHER_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"14";
-    constant SELECTED_RC4_START_ADDRESS : std_logic_vector(7 downto 0) := x"14";
-    constant SELECTED_RC4_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"15";
-    constant SELECTED_AUTOCLAVE_START_ADDRESS : std_logic_vector(7 downto 0) := x"15";
-    constant SELECTED_AUTOCLAVE_STOP_ADDRESS  : std_logic_vector(7 downto 0) := x"16";
+    --Menu rom addresses
+    constant NEWLINE_SEQUENCE_START_ADDRESS         : std_logic_vector(7 downto 0) := x"00";
+    constant NEWLINE_SEQUENCE_STOP_ADDRESS          : std_logic_vector(7 downto 0) := x"01";
+    constant PROMPT_SEQUENCE_START_ADDRESS          : std_logic_vector(7 downto 0) := x"01";
+    constant PROMPT_SEQUENCE_STOP_ADDRESS           : std_logic_vector(7 downto 0) := x"02";
+    constant BACKSPACE_SEQUENCE_START_ADDRESS       : std_logic_vector(7 downto 0) := x"02";
+    constant BACKSPACE_SEQUENCE_STOP_ADDRESS        : std_logic_vector(7 downto 0) := x"03";
+    constant HELP_START_ADDRESS                     : std_logic_vector(7 downto 0) := x"03";
+    constant HELP_STOP_ADDRESS                      : std_logic_vector(7 downto 0) := x"0E";
+    constant SPLASH_START_ADDRESS                   : std_logic_vector(7 downto 0) := x"03";
+    constant SPLASH_STOP_ADDRESS                    : std_logic_vector(7 downto 0) := x"06";
+    constant ILLEGAL_COMMAND_START_ADDRESS          : std_logic_vector(7 downto 0) := x"0E";
+    constant ILLEGAL_COMMAND_STOP_ADDRESS           : std_logic_vector(7 downto 0) := x"0F";
+    constant ILLEGAL_CIPHER_COMMAND_START_ADDRESS   : std_logic_vector(7 downto 0) := x"0F";
+    constant ILLEGAL_CIPHER_COMMAND_STOP_ADDRESS    : std_logic_vector(7 downto 0) := x"10";
+    constant ILLEGAL_CIPHER_START_ADDRESS           : std_logic_vector(7 downto 0) := x"10";
+    constant ILLEGAL_CIPHER_STOP_ADDRESS            : std_logic_vector(7 downto 0) := x"11";
+    constant SELECTED_RC4_START_ADDRESS             : std_logic_vector(7 downto 0) := x"11";
+    constant SELECTED_RC4_STOP_ADDRESS              : std_logic_vector(7 downto 0) := x"12";
+    constant SELECTED_AUTOCLAVE_START_ADDRESS       : std_logic_vector(7 downto 0) := x"12";
+    constant SELECTED_AUTOCLAVE_STOP_ADDRESS        : std_logic_vector(7 downto 0) := x"13";
 
     constant SPACE       : std_logic_vector(7 downto 0) := x"20";
     constant ENTER       : std_logic_vector(7 downto 0) := x"0d";

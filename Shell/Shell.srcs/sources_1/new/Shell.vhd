@@ -37,7 +37,6 @@ architecture Behavioral of Shell is
 
     signal output_reg_mux : STD_LOGIC_VECTOR (2 downto 0);
 
-    signal custom_out : STD_LOGIC_VECTOR (7 downto 0);
 
     -- Menu ROM signals
     signal menu_rom_data_out       : STD_LOGIC_VECTOR (7 downto 0);
@@ -69,7 +68,6 @@ architecture Behavioral of Shell is
 
     signal encrypt_decrypt_signal : STD_LOGIC;
 
-
 begin
     hex_to_ascii_in <= ram_data_out;
     ascii_to_hex_in <= rc4_data_out;
@@ -88,7 +86,6 @@ begin
     ascii_out <= ascii_in          when output_reg_mux = OUTPUT_MUX_INPUT else
                  rc4_data_out      when output_reg_mux = OUTPUT_MUX_RC4_ASCII else
                  ascii_to_hex_out  when output_reg_mux = OUTPUT_MUX_RC4_HEX else
-                 custom_out        when output_reg_mux = OUTPUT_MUX_CUSTOM else
                  menu_rom_data_out when output_reg_mux = OUTPUT_MUX_MENUROM else
                  autoclave_data_out;
 
@@ -117,7 +114,6 @@ begin
         ascii_to_hex_lsb_msb    => ascii_to_hex_lsb_msb,
         output_reg_mux          => output_reg_mux,
         ascii_in                => ascii_in,
-        custom_out              => custom_out,
         menu_rom_addr_load_val  => menu_rom_addr_load_val,
         menu_rom_addr_load_en   => menu_rom_addr_load_en,
         menu_rom_addr           => menu_rom_addr,
