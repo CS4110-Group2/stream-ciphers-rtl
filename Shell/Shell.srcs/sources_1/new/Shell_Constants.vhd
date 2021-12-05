@@ -2,7 +2,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 package Shell_Constants is
-
+    constant RC4_KEY : string := "ZAAAAAAA";
     constant ASCII_TO_HEX_LSB     : std_logic := '0';
     constant ASCII_TO_HEX_MSB     : std_logic := '1';
 

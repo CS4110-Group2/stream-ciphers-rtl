@@ -19,7 +19,8 @@ entity rc4_control_path is
            ram_address_select : out STD_LOGIC_VECTOR (1 downto 0);
            reg_tmp_select     : out STD_LOGIC;
            ram_data_in_select : out STD_LOGIC;
-           reg_j_select       : out STD_LOGIC);
+           reg_j_select       : out STD_LOGIC;
+           load_reg_out       : out STD_LOGIC);
 end rc4_control_path;
 
 architecture Behavioral of rc4_control_path is
@@ -68,6 +69,7 @@ begin
         ram_data_in_select <= '0';
         reg_j_select       <= '0';
         reg_tmp_select     <= '0';
+        load_reg_out <= '0';
 
         case state_reg is
             when Reset_Cipher =>
@@ -141,12 +143,13 @@ begin
                 ram_write          <= '1';
                 reg_tmp_select     <= '1';
                 load_reg_tmp       <= '1';
-                done_next          <= '1';
                 state_next         <= s8;
             when s8 =>
                 ram_address_select <= "10";
                 counter_i_inc      <= '1';
                 ready_next         <= '1';
+                done_next          <= '1';
+                load_reg_out <= '1';
                 state_next         <= Wait_For_Start;
         end case;
     end process;

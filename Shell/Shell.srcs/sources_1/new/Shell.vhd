@@ -254,6 +254,10 @@ begin
 
 
     rc4: entity work.rc4_top_level(Behavioral)
+    Generic map
+    (
+        RC4_KEY => RC4_KEY
+    )
     port map
     (
         clk      => clk,

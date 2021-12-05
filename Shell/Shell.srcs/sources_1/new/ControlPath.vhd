@@ -303,6 +303,9 @@ begin
                                     state_next <= WaitState;
                                     goto_state_next <= PrintHelp;
                                 end if;
+                            else
+                                output_reg_mux       <= OUTPUT_MUX_RC4_HEX;
+                                rc4_input_mux  <= RC4_INPUT_MUX_ASCII;
                             end if;
                         else -- CIPHER_AUTOCLAVE
                             -- autoclave_start <= '1';
@@ -357,12 +360,19 @@ begin
                             goto_state_next <= PrintHelp;
                         end if;
                     else --if ENCRYPT
+                        output_reg_mux       <= OUTPUT_MUX_RC4_HEX;
+                        rc4_input_mux <= RC4_INPUT_MUX_ASCII;
                         rc4_start  <= '1';
                         state_next <= WaitForRc4;
                     end if;
                 end if;
             when WaitForRc4 =>
-                rc4_input_mux <= RC4_INPUT_MUX_HEX;
+                if encrypt_decrypt_reg = DECRYPT then
+                    rc4_input_mux <= RC4_INPUT_MUX_HEX;
+                else
+                    output_reg_mux       <= OUTPUT_MUX_RC4_HEX;
+                    rc4_input_mux <= RC4_INPUT_MUX_ASCII;
+                end if;
                 if rc4_done = '1' then
                     state_next <= ReadRc4;
                     i_cnt_next <= 0;
@@ -376,14 +386,14 @@ begin
                         addr_cnt_en    <= '1';
                         state_next     <= LoopState;
                     else
+                        rc4_input_mux  <= RC4_INPUT_MUX_ASCII;
+                        output_reg_mux       <= OUTPUT_MUX_RC4_HEX;
                         if i_cnt = 0 then
                             ascii_to_hex_lsb_msb <= ASCII_TO_HEX_MSB;
-                            output_reg_mux       <= OUTPUT_MUX_RC4_HEX;
                             wr_uart              <= '1';
                             i_cnt_next           <= i_cnt + 1;
                         else
                             ascii_to_hex_lsb_msb <= ASCII_TO_HEX_LSB;
-                            output_reg_mux <= OUTPUT_MUX_RC4_HEX;
                             wr_uart        <= '1';
                             addr_cnt_en    <= '1';
                             state_next     <= LoopState;

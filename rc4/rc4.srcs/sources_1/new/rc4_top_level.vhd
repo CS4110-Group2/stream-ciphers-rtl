@@ -3,6 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity rc4_top_level is
+    Generic( RC4_KEY : string := "ZAAAAAAA");
     Port ( clk      : in  STD_LOGIC;
            rst      : in  STD_LOGIC;
            start    : in  STD_LOGIC;
@@ -21,6 +22,8 @@ architecture Behavioral of rc4_top_level is
     signal reg_j_in, reg_j_out, reg_tmp_in                      : STD_LOGIC_VECTOR (7 downto 0);
     signal load_reg_j, clear_reg_j, load_reg_tmp, ram_write     : STD_LOGIC;
     signal load_reg_k_index                                     : STD_LOGIC;
+    signal load_reg_out : STD_LOGIC;
+    signal reg_out_in : std_logic_vector(7 downto 0);
 
     -- ALU signals
     signal reg_j_and_ram_adder_out         : STD_LOGIC_VECTOR (7 downto 0);
@@ -38,14 +41,15 @@ architecture Behavioral of rc4_top_level is
     signal rom_addr : std_logic_vector(7 downto 0);
 
     begin
-    rom_addr <= std_logic_vector(to_unsigned(to_integer(unsigned(counter_i_out) rem 8), rom_addr'length));
+    rom_addr <= std_logic_vector(to_unsigned(to_integer(unsigned(counter_i_out) rem RC4_KEY'length), rom_addr'length));
 
     ram: entity work.rc4_ram(Behavioral)
     port map(clk => clk, write => ram_write, address => ram_address,
         data_in => ram_data_in, data_out => ram_data_out);
 
     rom: entity work.rc4_rom(Behavioral)
-    port map(address => counter_i_out, data_out => rom_data_out);
+    generic map( ADDR_WIDTH => 8, DATA_WIDTH => 8, RC4_KEY => RC4_KEY)
+    port map(address => rom_addr, data_out => rom_data_out);
 
     reg_j: entity work.rc4_reg(Behavioral)
     port map(clk => clk, rst => rst, load => load_reg_j, data_in => reg_j_in,
@@ -54,6 +58,10 @@ architecture Behavioral of rc4_top_level is
     reg_tmp: entity work.rc4_reg(Behavioral)
     port map(clk => clk, rst => rst, load => load_reg_tmp, data_in => reg_tmp_in,
         data_out => reg_tmp_out, clear => '0');
+
+    reg_out: entity work.rc4_reg(Behavioral)
+    port map(clk => clk, rst => rst, load => load_reg_out, data_in => reg_out_in,
+        data_out => data_out, clear => '0');
 
     counter_i: entity work.rc4_counter(Behavioral)
     port map(clk => clk, rst => rst, clear => counter_i_clear, inc => counter_i_inc,
@@ -68,14 +76,14 @@ architecture Behavioral of rc4_top_level is
              ram_address_select => ram_address_select, reg_j_select => reg_j_select,
              counter_i_max_tick => counter_i_max_tick, clear_reg_j => clear_reg_j,
              reg_tmp_select => reg_tmp_select, counter_i_load => counter_i_load,
-             ram_data_in_select => ram_data_in_select);
+             ram_data_in_select => ram_data_in_select, load_reg_out => load_reg_out);
 
     -- Glue logic
     reg_j_and_ram_adder_out <= STD_LOGIC_VECTOR(unsigned(reg_j_out) + unsigned(ram_data_out));
 
     keystream_value_index_adder_out <= STD_LOGIC_VECTOR(unsigned(ram_data_out) + unsigned(reg_tmp_out));
 
-    data_out <= STD_LOGIC_VECTOR(unsigned(data_in) xor unsigned(ram_data_out));
+    reg_out_in <= STD_LOGIC_VECTOR(unsigned(data_in) xor unsigned(ram_data_out));
 
     -- J Register Multiplexer
     reg_j_in <= reg_j_and_ram_adder_out when reg_j_select = '0' else
