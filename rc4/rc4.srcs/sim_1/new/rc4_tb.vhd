@@ -32,12 +32,12 @@ architecture Behavioral of rc4_tb is
     )
     is
     begin
-        wait until ready_tb = '1';
+        wait until rising_edge(clk_tb) and ready_tb = '1';
         data_in_tb <= byte;
         start_tb <= '1';
         wait for clk_period;
         start_tb <= '0';
-        wait until done_tb = '1' for 10*clk_period;
+        wait until rising_edge(clk_tb) and done_tb = '1' for 10*clk_period;
     end procedure write_byte;
 
 begin
@@ -65,12 +65,12 @@ begin
        end loop;
        
        clear_tb <= '1';
-       wait for clk_period;
+       wait for clk_period*2;
        clear_tb <= '0';
        
-       for i in 0 to plaintext'length - 1 loop
-           write_byte(plaintext(i), data_in_tb, start_tb);
-           assert data_out_tb = rc4_cipher(i)
+       for i in 0 to rc4_cipher'length - 1 loop
+           write_byte(rc4_cipher(i), data_in_tb, start_tb);
+           assert data_out_tb = plaintext(i)
                severity failure;
        end loop;
        

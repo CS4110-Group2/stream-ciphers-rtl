@@ -39,6 +39,8 @@ begin
         elsif (rising_edge(clk)) then
             if (clear = '1') then
                 state_reg <= Reset_Cipher;
+                ready_reg <= '0';
+                done_reg  <= '0';
             else
                 state_reg <= state_next;
                 ready_reg <= ready_next;
@@ -47,28 +49,25 @@ begin
         end if;
     end process;
 
-    -- process (clk)
-    -- begin
-    --     if (falling_edge(clk)) then
-    --         done_reg  <= done_next;
-    --     end if;
-    -- end process;
-
     done  <= done_reg;
     ready <= ready_reg;
 
     process (state_reg, start, counter_i_max_tick, ready_reg, done_reg)
     begin
-        state_next       <= state_reg;
-        done_next        <= '0';
-        ready_next       <= '0';
-        load_reg_j       <= '0';
-        load_reg_tmp     <= '0';
-        ram_write        <= '0';
-        counter_i_inc    <= '0';
-        counter_i_clear  <= '0';
-        counter_i_load   <= '0';
-        clear_reg_j      <= '0';
+        state_next         <= state_reg;
+        done_next          <= '0';
+        ready_next         <= '0';
+        load_reg_j         <= '0';
+        load_reg_tmp       <= '0';
+        ram_write          <= '0';
+        counter_i_inc      <= '0';
+        counter_i_clear    <= '0';
+        counter_i_load     <= '0';
+        clear_reg_j        <= '0';
+        ram_address_select <= "00";
+        ram_data_in_select <= '0';
+        reg_j_select       <= '0';
+        reg_tmp_select     <= '0';
 
         case state_reg is
             when Reset_Cipher =>
@@ -90,12 +89,16 @@ begin
                 state_next         <= KSA;
             when KSA =>
                 ram_address_select <= "01";
+                ram_data_in_select <= '0';
+                reg_j_select       <= '1';
                 reg_tmp_select     <= '0';
                 load_reg_tmp       <= '1';
                 state_next         <= s2;
             when s2 =>
                 ram_address_select <= "00";
+                ram_data_in_select <= '0';
                 reg_tmp_select     <= '0';
+                reg_j_select       <= '1';
                 load_reg_tmp       <= '1';
                 ram_write          <= '1';
                 state_next         <= s3;
@@ -113,6 +116,7 @@ begin
                 end if;
             when s4 =>
                 ram_address_select <= "00";
+                reg_j_select       <= '1';
                 load_reg_j         <= '1';
                 state_next         <= KSA;
             when Wait_For_Start =>
@@ -137,13 +141,13 @@ begin
                 ram_write          <= '1';
                 reg_tmp_select     <= '1';
                 load_reg_tmp       <= '1';
+                done_next          <= '1';
                 state_next         <= s8;
             when s8 =>
                 ram_address_select <= "10";
                 counter_i_inc      <= '1';
                 ready_next         <= '1';
                 state_next         <= Wait_For_Start;
-                done_next          <= '1';
         end case;
     end process;
 
