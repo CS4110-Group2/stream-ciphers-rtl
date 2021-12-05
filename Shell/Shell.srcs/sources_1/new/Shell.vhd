@@ -202,7 +202,7 @@ begin
     );
 
 
-    addr_counter : entity work.ModMCounterUpDown(Behavioral)
+    ram_addr_counter : entity work.ModMCounterUpDown(Behavioral)
     Generic map
     ( 
         N => 8,

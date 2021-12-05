@@ -319,6 +319,13 @@ begin
 		end loop;
 		writeUart(x"0d", RsRx, BAUDRATE);
 		validateNewline(expectedVal);
+
+
+		expectedVal <= x"45";
+		validateReceivedByte(expectedVal);
+		expectedVal <= x"e5";
+		validateReceivedByte(expectedVal);
+
 		for i in illegal_cipher_output'range loop 
 			expectedVal <= std_logic_vector(to_unsigned(character'pos(illegal_cipher_output(i)), 8));
 			-- expectedVal <= x"00";
