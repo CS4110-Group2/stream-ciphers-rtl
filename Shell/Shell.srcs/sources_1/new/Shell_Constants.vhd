@@ -29,19 +29,19 @@ package Shell_Constants is
     constant BACKSPACE_SEQUENCE_START_ADDRESS       : std_logic_vector(7 downto 0) := x"02";
     constant BACKSPACE_SEQUENCE_STOP_ADDRESS        : std_logic_vector(7 downto 0) := x"03";
     constant HELP_START_ADDRESS                     : std_logic_vector(7 downto 0) := x"03";
-    constant HELP_STOP_ADDRESS                      : std_logic_vector(7 downto 0) := x"0E";
+    constant HELP_STOP_ADDRESS                      : std_logic_vector(7 downto 0) := x"0F";
     constant SPLASH_START_ADDRESS                   : std_logic_vector(7 downto 0) := x"03";
     constant SPLASH_STOP_ADDRESS                    : std_logic_vector(7 downto 0) := x"06";
-    constant ILLEGAL_COMMAND_START_ADDRESS          : std_logic_vector(7 downto 0) := x"0E";
-    constant ILLEGAL_COMMAND_STOP_ADDRESS           : std_logic_vector(7 downto 0) := x"0F";
-    constant ILLEGAL_CIPHER_COMMAND_START_ADDRESS   : std_logic_vector(7 downto 0) := x"0F";
-    constant ILLEGAL_CIPHER_COMMAND_STOP_ADDRESS    : std_logic_vector(7 downto 0) := x"10";
-    constant ILLEGAL_CIPHER_START_ADDRESS           : std_logic_vector(7 downto 0) := x"10";
-    constant ILLEGAL_CIPHER_STOP_ADDRESS            : std_logic_vector(7 downto 0) := x"11";
-    constant SELECTED_RC4_START_ADDRESS             : std_logic_vector(7 downto 0) := x"11";
-    constant SELECTED_RC4_STOP_ADDRESS              : std_logic_vector(7 downto 0) := x"12";
-    constant SELECTED_AUTOCLAVE_START_ADDRESS       : std_logic_vector(7 downto 0) := x"12";
-    constant SELECTED_AUTOCLAVE_STOP_ADDRESS        : std_logic_vector(7 downto 0) := x"13";
+    constant ILLEGAL_COMMAND_START_ADDRESS          : std_logic_vector(7 downto 0) := x"0F";
+    constant ILLEGAL_COMMAND_STOP_ADDRESS           : std_logic_vector(7 downto 0) := x"10";
+    constant ILLEGAL_CIPHER_COMMAND_START_ADDRESS   : std_logic_vector(7 downto 0) := x"10";
+    constant ILLEGAL_CIPHER_COMMAND_STOP_ADDRESS    : std_logic_vector(7 downto 0) := x"11";
+    constant ILLEGAL_CIPHER_START_ADDRESS           : std_logic_vector(7 downto 0) := x"11";
+    constant ILLEGAL_CIPHER_STOP_ADDRESS            : std_logic_vector(7 downto 0) := x"12";
+    constant SELECTED_RC4_START_ADDRESS             : std_logic_vector(7 downto 0) := x"12";
+    constant SELECTED_RC4_STOP_ADDRESS              : std_logic_vector(7 downto 0) := x"13";
+    constant SELECTED_AUTOCLAVE_START_ADDRESS       : std_logic_vector(7 downto 0) := x"13";
+    constant SELECTED_AUTOCLAVE_STOP_ADDRESS        : std_logic_vector(7 downto 0) := x"14";
 
     constant SPACE       : std_logic_vector(7 downto 0) := x"20";
     constant ENTER       : std_logic_vector(7 downto 0) := x"0d";
@@ -54,7 +54,7 @@ package Shell_Constants is
     constant HELPCOMMAND    : std_logic_vector(7 downto 0) := x"68";
     constant ENCRYPTCOMMAND : std_logic_vector(7 downto 0) := x"65";
     constant DECRYPTCOMMAND : std_logic_vector(7 downto 0) := x"64";
-    constant RESETCOMMAND   : std_logic_vector(7 downto 0) := x"71";
+    constant RESETCOMMAND   : std_logic_vector(7 downto 0) := x"72";
     constant CIPHERCOMMAND  : std_logic_vector(7 downto 0) := x"63";
 
     constant ACCEPT_HEX           : std_logic := '1';

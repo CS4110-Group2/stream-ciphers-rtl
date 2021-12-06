@@ -36,7 +36,8 @@ entity ControlPath is
            menu_rom_inc_char_cnt   : out STD_LOGIC; 
            menu_rom_clear_char_cnt : out STD_LOGIC;
            menu_rom_line_done      : in  STD_LOGIC; 
-           encrypt_decrypt         : out STD_LOGIC); 
+           encrypt_decrypt         : out STD_LOGIC; 
+           software_reset          : out STD_LOGIC); 
 end ControlPath;
 
 architecture Behavioral of ControlPath is
@@ -147,6 +148,7 @@ begin
         cipher_select_next             <= cipher_select_reg;
         goto_state_next                <= goto_state_reg;
         current_menu_stop_address_next <= current_menu_stop_address_reg;
+        software_reset <= '0';
 
         case state_reg is
             when Init =>
@@ -207,7 +209,7 @@ begin
                         state_next           <= RamAddrIncrementState;
                         goto_state_next      <= LoopState;
                     when RESETCOMMAND =>
-                        -- rst <= '1';
+                        software_reset <= '1';
                         -- state_next <= Init;
                     when CIPHERCOMMAND =>
                         addr_cnt_en     <= '1';

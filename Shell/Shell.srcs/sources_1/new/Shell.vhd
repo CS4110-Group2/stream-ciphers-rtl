@@ -7,7 +7,7 @@ use work.Shell_Constants.all;
 
 entity Shell is
     Port ( clk        : in  STD_LOGIC;
-           rst        : in  STD_LOGIC;
+           rst_btn    : in  STD_LOGIC;
            RsRx       : in  STD_LOGIC;
            RsTx       : out STD_LOGIC;
            led_signal : out STD_LOGIC);
@@ -68,7 +68,12 @@ architecture Behavioral of Shell is
 
     signal encrypt_decrypt_signal : STD_LOGIC;
 
+
+    signal software_reset : STD_LOGIC;
+    signal rst : STD_LOGIC;
+
 begin
+    rst <= software_reset or rst_btn;
     hex_to_ascii_in <= ram_data_out;
     ascii_to_hex_in <= rc4_data_out;
 
@@ -128,7 +133,8 @@ begin
         rc4_input_mux           => rc4_input_mux,
         autoclave_start         => autoclave_start,
         autoclave_clear         => autoclave_clear,
-        encrypt_decrypt         => encrypt_decrypt_signal
+        encrypt_decrypt         => encrypt_decrypt_signal,
+        software_reset          => software_reset
     );
 
 

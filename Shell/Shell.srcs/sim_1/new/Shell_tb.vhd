@@ -72,6 +72,7 @@ architecture Behavioral of Shell_tb is
 		report "Got >";
 	end procedure;
 
+	constant reset_command : string := "-r";
 	constant encrypt_command : string := "-e ";
 	constant decrypt_command : string := "-d ";
 	constant rc4_select_command : string := "-c r";
@@ -120,7 +121,7 @@ begin
 	port map
 	(
 		clk => clk,
-		rst => rst,
+		rst_btn => rst,
 		RsRx => RsRx,
 		RsTx => RsTx,
 		led_signal => led_signal
@@ -144,6 +145,35 @@ begin
 		------------------------------------------------------------------------------
 		-- TEST INIT
 		------------------------------------------------------------------------------
+		validateNewline(expectedVal);
+		for i in splash1'range loop 
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(splash1(i)), 8));
+			-- expectedVal <= x"00";
+			validateReceivedByte(expectedVal);
+			report "Splash Screen 1";
+		end loop;
+		validateNewline(expectedVal);
+		for i in splash2'range loop 
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(splash2(i)), 8));
+			-- expectedVal <= x"00";
+			validateReceivedByte(expectedVal);
+			report "Splash Screen 2";
+		end loop;
+		validateNewline(expectedVal);
+
+		
+		validatePrompt(expectedVal);
+
+		------------------------------------------------------------------------------
+		-- TEST SOFTWARE RESET
+		------------------------------------------------------------------------------
+		for i in reset_command'range loop 
+			writeUart(std_logic_vector(to_unsigned(character'pos(reset_command(i)), 8)), RsRx, BAUDRATE);
+			expectedVal <= std_logic_vector(to_unsigned(character'pos(reset_command(i)), 8));
+			validateReceivedByte(expectedVal);
+			report "Echo Reset Command";
+		end loop;
+		writeUart(x"0d", RsRx, BAUDRATE);
 		validateNewline(expectedVal);
 		for i in splash1'range loop 
 			expectedVal <= std_logic_vector(to_unsigned(character'pos(splash1(i)), 8));

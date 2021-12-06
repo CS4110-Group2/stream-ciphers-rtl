@@ -8,6 +8,7 @@ By V.Bodahl, K.Odde, S.Onarheim and S.Rudin\n
 -d <input>   : Decrypt input\n
 -c rc4       : Set cipher to RC4\n
 -c autoclave : Set cipher to AutoClave\n
+-r           : Async reset\n
 BtnC         : Async reset\n
 \n
 ;Parse error:
