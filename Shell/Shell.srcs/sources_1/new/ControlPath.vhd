@@ -51,7 +51,6 @@ architecture Behavioral of ControlPath is
             ParseCommand, 
             ParseCipher, 
             LoopState, 
-            HandleAutoclave, 
             StartRc4, 
             WaitForRc4, 
             ReadRc4, 
@@ -153,10 +152,7 @@ begin
         case state_reg is
             when Init =>
                 addr_cnt_clear                 <= '1';
-                -- PrintFromMenuRom( HELP_START_ADDRESS, HELP_STOP_ADDRESS);
-                
                 PrintFromMenuRom( SPLASH_START_ADDRESS, SPLASH_STOP_ADDRESS);
-                -- PrintFromMenuRom( NEWLINE_SEQUENCE_START_ADDRESS, PROMPT_SEQUENCE_STOP_ADDRESS);
 
             when WaitRx =>
                 if rx_done_tick = '1' and tx_full = '0' then
@@ -348,15 +344,6 @@ begin
                             state_next           <= LoopState;
                         end if;
                     end if;
-                end if;
-
-            when HandleAutoclave =>
-                if tx_full = '0' then
-                    autoclave_start <= '0';
-                    output_reg_mux  <= OUTPUT_MUX_AUTOCLAVE;
-                    wr_uart         <= '1';
-                    addr_cnt_en     <= '1';
-                    state_next      <= LoopState;
                 end if;
 
             when RamAddrIncrementState =>
