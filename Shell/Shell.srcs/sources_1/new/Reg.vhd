@@ -5,11 +5,11 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity Reg is
     Generic( SIZE : integer := 8);
-    Port ( clk : in STD_LOGIC;
-           rst : in STD_LOGIC;
-           load : in STD_LOGIC;
-           clear : in STD_LOGIC;
-           data_in : in STD_LOGIC_VECTOR (SIZE-1 downto 0);
+    Port ( clk      : in  STD_LOGIC;
+           rst      : in  STD_LOGIC;
+           load     : in  STD_LOGIC;
+           clear    : in  STD_LOGIC;
+           data_in  : in  STD_LOGIC_VECTOR (SIZE-1 downto 0);
            data_out : out STD_LOGIC_VECTOR (SIZE-1 downto 0));
 end Reg;
 

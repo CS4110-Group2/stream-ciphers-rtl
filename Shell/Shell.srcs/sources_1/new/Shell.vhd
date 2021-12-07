@@ -70,10 +70,10 @@ architecture Behavioral of Shell is
 
 
     signal software_reset : STD_LOGIC;
-    signal rst : STD_LOGIC;
+    signal rst            : STD_LOGIC;
 
 begin
-    rst <= software_reset or rst_btn;
+    rst             <= software_reset or rst_btn;
     hex_to_ascii_in <= ram_data_out;
     ascii_to_hex_in <= rc4_data_out;
 

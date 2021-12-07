@@ -147,11 +147,11 @@ begin
         cipher_select_next             <= cipher_select_reg;
         goto_state_next                <= goto_state_reg;
         current_menu_stop_address_next <= current_menu_stop_address_reg;
-        software_reset <= '0';
+        software_reset                 <= '0';
 
         case state_reg is
             when Init =>
-                addr_cnt_clear                 <= '1';
+                addr_cnt_clear <= '1';
                 PrintFromMenuRom( SPLASH_START_ADDRESS, SPLASH_STOP_ADDRESS);
 
             when WaitRx =>
@@ -184,7 +184,7 @@ begin
                         state_next  <= ParseCommand;
                         addr_cnt_en <= '1';
                     else
-                        addr_cnt_clear                 <= '1';
+                        addr_cnt_clear <= '1';
                         PrintFromMenuRom( ILLEGAL_COMMAND_START_ADDRESS, ILLEGAL_COMMAND_STOP_ADDRESS);
                     end if;
                 end if;
@@ -192,7 +192,7 @@ begin
             when ParseCommand =>
                 case ram_data_out is
                     when HELPCOMMAND =>
-                        addr_cnt_clear                 <= '1';
+                        addr_cnt_clear <= '1';
                         PrintFromMenuRom( HELP_START_ADDRESS, HELP_STOP_ADDRESS);
                     when ENCRYPTCOMMAND =>
                         encrypt_decrypt_next <= ENCRYPT;
@@ -215,28 +215,28 @@ begin
                         addr_cnt_en <= '1';
                         state_next  <= ParseCommand;
                     when others =>
-                        addr_cnt_clear                 <= '1';
+                        addr_cnt_clear <= '1';
                         PrintFromMenuRom( ILLEGAL_COMMAND_START_ADDRESS, ILLEGAL_COMMAND_STOP_ADDRESS);
                 end case;
 
             when ParseCipher =>
-                addr_cnt_clear          <= '1';
+                addr_cnt_clear <= '1';
                 if ram_data_out = x"61" then
-                    cipher_select_next             <= CIPHER_AUTOCLAVE;
+                    cipher_select_next <= CIPHER_AUTOCLAVE;
                     PrintFromMenuRom( SELECTED_AUTOCLAVE_START_ADDRESS, SELECTED_AUTOCLAVE_STOP_ADDRESS);
                 elsif ram_data_out = x"72" then
-                    cipher_select_next             <= CIPHER_RC4;
+                    cipher_select_next <= CIPHER_RC4;
                     PrintFromMenuRom( SELECTED_RC4_START_ADDRESS, SELECTED_RC4_STOP_ADDRESS);
                 else
                     PrintFromMenuRom( ILLEGAL_CIPHER_COMMAND_START_ADDRESS, ILLEGAL_CIPHER_COMMAND_STOP_ADDRESS);
                 end if;
+
             when LoopState =>
                 if tx_full = '0' then
                     if ram_data_out = ENTER then
                         addr_cnt_clear   <= '1';
                         rc4_clear        <= '1';
                         autoclave_clear  <= '1';
-
                         PrintFromMenuRom( NEWLINE_SEQUENCE_START_ADDRESS, PROMPT_SEQUENCE_STOP_ADDRESS);
                     else
                         if cipher_select_reg = CIPHER_RC4 then
@@ -246,8 +246,8 @@ begin
                                     hex_to_ascii_load <= '1';
                                     addr_cnt_en       <= '1';
                                 else -- Non Hex character received
-                                    rc4_clear                      <= '1';
-                                    addr_cnt_clear                 <= '1';
+                                    rc4_clear      <= '1';
+                                    addr_cnt_clear <= '1';
                                     PrintFromMenuRom( ILLEGAL_CIPHER_START_ADDRESS, ILLEGAL_CIPHER_STOP_ADDRESS);
                                 end if;
                             else -- ENCRYPT
@@ -270,10 +270,10 @@ begin
                     if menu_rom_addr = current_menu_stop_address_reg then
                         if current_menu_stop_address_reg = PROMPT_SEQUENCE_STOP_ADDRESS or current_menu_stop_address_reg = BACKSPACE_SEQUENCE_STOP_ADDRESS then
                             menu_rom_clear_char_cnt <= '1';
-                            state_next <= WaitRx;
+                            state_next              <= WaitRx;
                         elsif current_menu_stop_address_reg = NEWLINE_SEQUENCE_STOP_ADDRESS then
                             menu_rom_clear_char_cnt <= '1';
-                            state_next <= HandleEnter;
+                            state_next              <= HandleEnter;
                         else
                             PrintFromMenuRom( NEWLINE_SEQUENCE_START_ADDRESS, PROMPT_SEQUENCE_STOP_ADDRESS);
                         end if;
@@ -298,8 +298,8 @@ begin
                             rc4_input_mux <= RC4_INPUT_MUX_HEX;
                             state_next    <= WaitForRc4;
                         else -- Non Hex character received
-                            addr_cnt_clear                 <= '1';
-                            rc4_clear                      <= '1';
+                            addr_cnt_clear <= '1';
+                            rc4_clear      <= '1';
                             PrintFromMenuRom( ILLEGAL_CIPHER_START_ADDRESS, ILLEGAL_CIPHER_STOP_ADDRESS);
                         end if;
                     else --if ENCRYPT

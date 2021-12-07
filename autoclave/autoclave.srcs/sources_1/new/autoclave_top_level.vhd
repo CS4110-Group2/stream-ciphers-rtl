@@ -1,10 +1,9 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.NUMERIC_STD.all;
 
 entity autoclave_top_level is
     generic(
-        -- Default setting:
         RAM_ADDR_WIDTH : INTEGER := 6;  
         RAM_DATA_WIDTH : INTEGER := 8 
     );
@@ -20,13 +19,13 @@ entity autoclave_top_level is
 end autoclave_top_level;
 
 architecture Behavioral of autoclave_top_level is
-    signal ascii_k : std_logic_vector (RAM_DATA_WIDTH-1 downto 0);
-    signal key     : std_logic_vector (RAM_DATA_WIDTH-1 downto 0);
-    signal cipher  : std_logic_vector (RAM_DATA_WIDTH-1 downto 0);
+    signal ascii_k : STD_LOGIC_VECTOR (RAM_DATA_WIDTH-1 downto 0);
+    signal key     : STD_LOGIC_VECTOR (RAM_DATA_WIDTH-1 downto 0);
+    signal cipher  : STD_LOGIC_VECTOR (RAM_DATA_WIDTH-1 downto 0);
 
-    signal update_key, load_ram, inc_address, clear_address : std_logic;
-    signal ram_address : std_logic_vector(RAM_ADDR_WIDTH-1 downto 0);
-    signal ram_counter_enable : std_logic;
+    signal update_key, load_ram, inc_address, clear_address : STD_LOGIC;
+    signal ram_address : STD_LOGIC_VECTOR (RAM_ADDR_WIDTH-1 downto 0);
+    signal ram_counter_enable : STD_LOGIC;
 
 begin
     ascii_k <= data_in when encrypt_decrypt_signal = '1' else cipher;
@@ -41,8 +40,8 @@ begin
     generic map(ADDR_WIDTH => RAM_ADDR_WIDTH, DATA_WIDTH => RAM_DATA_WIDTH )
     port map(
         clk      => clk,
-        addr => ram_address,
-        load => update_key,
+        addr     => ram_address,
+        load     => update_key,
         data_in  => ascii_k,
         data_out => key
     );
@@ -63,13 +62,13 @@ begin
     )
     port map
     (
-        en => ram_counter_enable,
-        rst => rst,
-        clk => clk,
-        clr => clear,
-        data_in => (others => '0'),
-        load_en => '0',
-        q => ram_address,
+        en       => ram_counter_enable,
+        rst      => rst,
+        clk      => clk,
+        clr      => clear,
+        data_in  => (others => '0'),
+        load_en  => '0',
+        q        => ram_address,
         max_tick => open
     );
     

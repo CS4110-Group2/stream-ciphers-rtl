@@ -10,14 +10,13 @@ use work.Shell_Constants.all;
 entity StringRom is
     Generic(AddrSize : Integer := 7;
             DataSize : Integer := 50); 
-    Port ( clk : in STD_LOGIC; 
-           rst : in STD_LOGIC; 
-           addr :           in STD_LOGIC_VECTOR (AddrSize-1 downto 0);
-           -- dataOut :    out string(1 to DataSize));
-           dataOut :    out STD_LOGIC_VECTOR(7 downto 0);
-           inc_char_cnt : in STD_LOGIC; 
-           clear_char_cnt : in STD_LOGIC;
-           line_done : out STD_LOGIC); 
+    Port ( clk            : in  STD_LOGIC; 
+           rst            : in  STD_LOGIC; 
+           addr           : in  STD_LOGIC_VECTOR (AddrSize-1 downto 0);
+           dataOut        : out STD_LOGIC_VECTOR(7 downto 0);
+           inc_char_cnt   : in  STD_LOGIC; 
+           clear_char_cnt : in  STD_LOGIC;
+           line_done      : out STD_LOGIC); 
 end StringRom; 
 
 --Rom is filled with contents of file prog.bin

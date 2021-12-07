@@ -1,5 +1,3 @@
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -8,11 +6,11 @@ use IEEE.NUMERIC_STD.ALL;
 entity Ram is
     Generic(WORDSIZE : integer := 8;
             ADDRSIZE : integer := 8);
-    Port ( clk : in STD_LOGIC;
-           wr : in STD_LOGIC := '0';
-           clr : in STD_LOGIC := '0';
-           data_in : in STD_LOGIC_VECTOR (WORDSIZE-1 downto 0);
-           addr : in STD_LOGIC_VECTOR (ADDRSIZE-1 downto 0);
+    Port ( clk      : in  STD_LOGIC;
+           wr       : in  STD_LOGIC := '0';
+           clr      : in  STD_LOGIC := '0';
+           data_in  : in  STD_LOGIC_VECTOR (WORDSIZE-1 downto 0);
+           addr     : in  STD_LOGIC_VECTOR (ADDRSIZE-1 downto 0);
            data_out : out STD_LOGIC_VECTOR (WORDSIZE-1 downto 0));
 end Ram;
 
@@ -35,6 +33,5 @@ begin
     end process;
 
     data_out <= memory(to_integer(unsigned(addr)));
-
 
 end Behavioral;

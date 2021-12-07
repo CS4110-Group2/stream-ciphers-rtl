@@ -5,9 +5,9 @@ use IEEE.NUMERIC_STD.ALL;
 
 
 entity AsciiToHex is
-    Port ( ascii : in STD_LOGIC_VECTOR (7 downto 0);
-           hex : out STD_LOGIC_VECTOR (7 downto 0);
-           lsb_msb : in STD_LOGIC);
+    Port ( ascii   : in STD_LOGIC_VECTOR (7 downto 0);
+           hex     : out STD_LOGIC_VECTOR (7 downto 0);
+           lsb_msb : in  STD_LOGIC);
 end AsciiToHex;
 
 architecture Behavioral of AsciiToHex is

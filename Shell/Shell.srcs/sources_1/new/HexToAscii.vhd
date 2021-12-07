@@ -4,11 +4,11 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity HexToAscii is
-    Port ( clk : in STD_LOGIC;
-           rst : in STD_LOGIC;
-           load : in STD_LOGIC;
-           data_in : in STD_LOGIC_VECTOR (7 downto 0);
-           ascii : out STD_LOGIC_VECTOR (7 downto 0));
+    Port ( clk     : in  STD_LOGIC;
+           rst     : in  STD_LOGIC;
+           load    : in  STD_LOGIC;
+           data_in : in  STD_LOGIC_VECTOR (7 downto 0);
+           ascii   : out STD_LOGIC_VECTOR (7 downto 0));
 end HexToAscii;
 
 architecture Behavioral of HexToAscii is

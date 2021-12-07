@@ -8,13 +8,13 @@ use IEEE.NUMERIC_STD.ALL;
 entity ModMCounterEn is
     Generic( N : integer := 4;
              M : Integer := 16);
-    Port ( en : in STD_LOGIC;
-           rst : in STD_LOGIC;
-           clk : in STD_LOGIC;
-           clr : in STD_LOGIC;
-           data_in : in STD_LOGIC_VECTOR(N-1 downto 0); 
-           load_en : in STD_LOGIC;
-           q : out STD_LOGIC_VECTOR (N-1 downto 0);
+    Port ( en       : in  STD_LOGIC;
+           rst      : in  STD_LOGIC;
+           clk      : in  STD_LOGIC;
+           clr      : in  STD_LOGIC;
+           data_in  : in  STD_LOGIC_VECTOR(N-1 downto 0); 
+           load_en  : in  STD_LOGIC;
+           q        : out STD_LOGIC_VECTOR (N-1 downto 0);
            max_tick : out STD_LOGIC);
 end ModMCounterEn;
 

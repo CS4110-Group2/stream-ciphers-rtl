@@ -9,17 +9,16 @@ use IEEE.NUMERIC_STD.ALL;
 entity ModMCounterUpDown is
     Generic( N : integer := 4;
              M : Integer := 16);
-    Port ( en : in STD_LOGIC;
-           rst : in STD_LOGIC; 
-           up_down : in STD_LOGIC;
-           clk : in STD_LOGIC;
-           clr : in STD_LOGIC;
-           zero : out STD_LOGIC; 
-           q : out STD_LOGIC_VECTOR (N-1 downto 0));
+    Port ( en      : in  STD_LOGIC;
+           rst     : in  STD_LOGIC; 
+           up_down : in  STD_LOGIC;
+           clk     : in  STD_LOGIC;
+           clr     : in  STD_LOGIC;
+           zero    : out STD_LOGIC; 
+           q       : out STD_LOGIC_VECTOR (N-1 downto 0));
 end ModMCounterUpDown;
 
 architecture Behavioral of ModMCounterUpDown is
-
 
 begin
 
@@ -50,9 +49,5 @@ begin
         else
             zero <= '0';
         end if;
-
     end process;
-
-
-
 end Behavioral;
