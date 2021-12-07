@@ -35,6 +35,8 @@ begin
                   '0';
 
     ram_counter_enable <= update_key or clear; 
+
+    data_out <= cipher;
                 
     keystream_ram_unit: entity work.autoclave_keystream_one_port_ram(Behavioral)
     generic map(ADDR_WIDTH => RAM_ADDR_WIDTH, DATA_WIDTH => RAM_DATA_WIDTH )
@@ -71,7 +73,4 @@ begin
         q        => ram_address,
         max_tick => open
     );
-    
-    data_out <= cipher;
-
 end Behavioral;

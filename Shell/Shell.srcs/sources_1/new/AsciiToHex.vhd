@@ -36,6 +36,6 @@ architecture Behavioral of AsciiToHex is
 
 begin
     hex <= table(to_integer(unsigned(ascii(3 downto 0)))) when lsb_msb = '0' else
-             table(to_integer(unsigned(ascii(7 downto 4))));
+           table(to_integer(unsigned(ascii(7 downto 4))));
 
 end Behavioral;

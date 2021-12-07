@@ -105,6 +105,8 @@ begin
 
     process(state_reg, rx_done_tick, tx_full, ascii_in, menu_rom_addr, menu_rom_line_done, ram_data_out, i_cnt, rc4_done, rc4_ready, encrypt_decrypt_reg, addr_cnt_zero, cipher_select_reg, goto_state_reg, current_menu_stop_address_reg)
 
+        --Go to PrintFromMenu state, and start printing at startAddress
+        --When printing is over, next state is decided based on stopAddress
         procedure PrintFromMenuRom 
         ( 
             constant startAddress : in std_logic_vector(7 downto 0); 
@@ -206,7 +208,6 @@ begin
                         goto_state_next      <= LoopState;
                     when RESETCOMMAND =>
                         software_reset <= '1';
-                        -- state_next <= Init;
                     when CIPHERCOMMAND =>
                         addr_cnt_en     <= '1';
                         state_next      <= RamAddrIncrementState;
@@ -313,7 +314,7 @@ begin
             when WaitForRc4 =>
                 if encrypt_decrypt_reg = DECRYPT then
                     rc4_input_mux <= RC4_INPUT_MUX_HEX;
-                else
+                else -- ENCRYPT
                     output_reg_mux <= OUTPUT_MUX_RC4_HEX;
                     rc4_input_mux  <= RC4_INPUT_MUX_ASCII;
                 end if;
@@ -330,14 +331,15 @@ begin
                         wr_uart        <= '1';
                         addr_cnt_en    <= '1';
                         state_next     <= LoopState;
-                    else
+                    else --DECRYPT 
                         rc4_input_mux  <= RC4_INPUT_MUX_ASCII;
                         output_reg_mux <= OUTPUT_MUX_RC4_HEX;
+                        --Load first hex char
                         if i_cnt = 0 then
                             ascii_to_hex_lsb_msb <= ASCII_TO_HEX_MSB;
                             wr_uart              <= '1';
                             i_cnt_next           <= i_cnt + 1;
-                        else
+                        else --Load second hex char and exit
                             ascii_to_hex_lsb_msb <= ASCII_TO_HEX_LSB;
                             wr_uart              <= '1';
                             addr_cnt_en          <= '1';
@@ -350,6 +352,7 @@ begin
                 addr_cnt_en <= '1';
                 state_next  <= goto_state_reg;
 
+            --Because of async read from menurom we need to wait between address loads in counter
             when WaitState =>
                 state_next <= goto_state_reg;
 

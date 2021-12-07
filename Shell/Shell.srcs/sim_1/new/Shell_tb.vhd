@@ -2,9 +2,9 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
-use ieee.math_real.all;
-use std.env.finish;
-use IEEE.std_logic_textio.all;
+use IEEE.MATH_REAL.ALL;
+use STD.ENV.FINISH;
+use IEEE.STD_LOGIC_TEXTIO.ALL;
 
 entity Shell_tb is end Shell_tb;
 
@@ -13,8 +13,8 @@ architecture Behavioral of Shell_tb is
 	constant MCount : integer := integer(100000000/(BAUDRATE*16));
 	constant NBits : integer := integer(ceil(log2(real(MCount))));
 
-
 	signal expectedVal : std_logic_vector (7 downto 0) := (others => '0');
+
 	--Uart receiver for Test bench
 	signal baudrate_tick, rx, rx_done_tick : std_logic;
 	signal rx_data : std_logic_vector(7 downto 0);
@@ -462,6 +462,13 @@ begin
 
 	end process;
 
+
+
+
+
+	------------------------------------------------------------------------------
+	-- Uart Receiver used by test bench
+	------------------------------------------------------------------------------
 	modMCounter2 : entity work.ModMCounterEn(Behavioral)
 	generic map
 	( 

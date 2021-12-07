@@ -1,19 +1,17 @@
 -- (adapted from) Listing 11.1
--- Single-port RAM with synchronous read
--- Modified from XST 8.1i rams_07
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity autoclave_keystream_one_port_ram is
     generic(
-        ADDR_WIDTH : INTEGER := 6; -- 1KB RAM
+        ADDR_WIDTH : INTEGER := 6;
         DATA_WIDTH : INTEGER := 8
     );
     port(
         clk      : in  STD_LOGIC;
-        addr : in STD_LOGIC_VECTOR(ADDR_WIDTH -1 downto 0);
-        load    : in  STD_LOGIC;
+        addr     : in STD_LOGIC_VECTOR(ADDR_WIDTH -1 downto 0);
+        load     : in  STD_LOGIC;
         data_in  : in  STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0);
         data_out : out STD_LOGIC_VECTOR(DATA_WIDTH - 1 downto 0)
     );

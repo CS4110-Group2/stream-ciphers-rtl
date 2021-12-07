@@ -19,8 +19,7 @@ entity StringRom is
            line_done      : out STD_LOGIC); 
 end StringRom; 
 
---Rom is filled with contents of file prog.bin
---File has to be 128 lines of binary, with a newline for each byte
+--Rom is filled with contents of file menurom.txt plus special char sequences.
 architecture Behavioral of StringRom is
 
     type memory_type is array(0 to (2**AddrSize)-1) of string(1 to DataSize);
@@ -47,14 +46,18 @@ architecture Behavioral of StringRom is
         result(lineNumber)(2) := character'val(to_integer(unsigned(SPACE)));
         result(lineNumber)(3) := character'val(to_integer(unsigned(BACKSPACE)));
         lineNumber := lineNumber + 1;
-        --Write enter and linefeed to first index
+        
+        --Read from file and fill rom 
         while not endFile(fileHandle) loop
             readline(fileHandle, currentLine);
             assert currentLine'length < stringLine'length;
             stringLine := (others => ' ');
             read(currentLine, stringLine(1 to currentLine'length));
 
+            --Treat ; as comment
             if stringline(1) /= ';' then
+
+            --Convert \n to CRLF right after text
                 for i in 1 to stringLine'length loop
                     if(i > 1 and stringLine(i-1) = '\' and stringLine(i) = 'n') then
                         result(lineNumber)(i-1) := character'val(to_integer(unsigned(ENTER)));
@@ -66,6 +69,7 @@ architecture Behavioral of StringRom is
             lineNumber := lineNumber + 1;
             end if;
         end loop;
+        --Fill rest of ram with ']'
         stringLine := (others => ']');
         while lineNumber < DataSize loop
             result(lineNumber) := stringLine;
@@ -80,6 +84,8 @@ architecture Behavioral of StringRom is
 
 begin
 
+    --Output a single character based on current line and character count.
+    --Synchronous read
     process(clk, rst)
         variable I : integer RANGE 0 to (2**AddrSize);
     begin
@@ -93,13 +99,14 @@ begin
                     cnt := cnt + 1; 
                 end if;
             end if;
-            I := to_integer(unsigned(addr));
-            outBuf <= std_logic_vector(to_unsigned(character'pos(memory(I)(cnt)), dataOut'length));
+            outBuf <= std_logic_vector(to_unsigned(character'pos(memory(to_integer(unsigned(addr)))(cnt)), dataOut'length));
         end if;
     end process;
 
+    --Set line done signal when end of line or special sequence is over 
     line_done <= '1' when cnt = DataSize or outBuf = LINEFEED or (outBuf = PROMPT and cnt = 1) or (outBuf = BACKSPACE and cnt = 3) else
-                   '0';
+                 '0';
+
     dataOut <= outBuf;
 
 end Behavioral;

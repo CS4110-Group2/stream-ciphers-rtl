@@ -10,9 +10,10 @@ entity autoclave_cipher is
 end autoclave_cipher;
 
 architecture Behavioral of autoclave_cipher is
-    signal sdin:  unsigned (7 downto 0);
-    signal skey:  unsigned (7 downto 0);
-    signal cipher: unsigned (7 downto 0);
+
+    signal sdin     : unsigned (7 downto 0);
+    signal skey     : unsigned (7 downto 0);
+    signal cipher   : unsigned (7 downto 0);
 
 begin
     sdin <= unsigned(data_in);
