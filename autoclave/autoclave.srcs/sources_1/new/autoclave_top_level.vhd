@@ -24,13 +24,15 @@ architecture Behavioral of autoclave_top_level is
     signal cipher  : STD_LOGIC_VECTOR (RAM_DATA_WIDTH-1 downto 0);
 
     signal update_key, load_ram, inc_address, clear_address : STD_LOGIC;
-    signal ram_address : STD_LOGIC_VECTOR (RAM_ADDR_WIDTH-1 downto 0);
+    
+    signal ram_address        : STD_LOGIC_VECTOR (RAM_ADDR_WIDTH-1 downto 0);
     signal ram_counter_enable : STD_LOGIC;
 
 begin
+
     ascii_k <= data_in when encrypt_decrypt_signal = '1' else cipher;
-
-
+    
+    -- Only update the key if ASCII is valid and start = '1'
     update_key <= '1' when ( ( ( data_in >= x"41" ) and ( data_in <= x"5A") ) or ( ( data_in >= x"61" ) and ( data_in <= x"7A") ) ) and start = '1' else
                   '0';
 

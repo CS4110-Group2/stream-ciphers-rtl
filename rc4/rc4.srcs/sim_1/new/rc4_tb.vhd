@@ -57,17 +57,20 @@ begin
     process
     begin
        clear_tb <= '0';
-         
+       
+       -- Encrypt
        for i in 0 to plaintext'length - 1 loop
            write_byte(plaintext(i), data_in_tb, start_tb);
            assert data_out_tb = rc4_cipher(i)
                severity failure;
        end loop;
        
+       -- Clear RC4
        clear_tb <= '1';
        wait for clk_period*2;
        clear_tb <= '0';
        
+       -- Decrypt
        for i in 0 to rc4_cipher'length - 1 loop
            write_byte(rc4_cipher(i), data_in_tb, start_tb);
            assert data_out_tb = plaintext(i)
