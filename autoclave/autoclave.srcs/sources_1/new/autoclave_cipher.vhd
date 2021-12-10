@@ -19,9 +19,7 @@ begin
     sdin <= unsigned(data_in);
     skey <= unsigned(key);
 
-    cipher <= -- case of space:
-             x"20" when ( sdin=x"20" ) else
-             -- Encrypting
+    cipher <=-- Encrypting
              -- case of uppercase:
              ( ( ( sdin + skey ) MOD 26 ) + x"41") when ( ( ( sdin >= x"41" ) and ( sdin <= x"5A") ) and encrypt_decrypt_signal='1' ) else
              -- case of lowercase (add make it uppercase):
