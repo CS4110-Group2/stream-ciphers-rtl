@@ -114,6 +114,7 @@ begin
                     counter_i_load <= '1';
                     reg_j_select   <= '0';
                     clear_reg_j    <= '1';
+                    ready_next     <= '1';
                     state_next     <= Wait_For_Start;
                 else
                     counter_i_inc <= '1';
