@@ -6,3 +6,5 @@
 *.log
 *.jou
 *.swp
+*.hw
+*.ip_user_files
