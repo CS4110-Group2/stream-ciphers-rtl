@@ -18,9 +18,11 @@ There is also a pre-generated bitstream file, that can be written to FPGA direct
 
 # Running TestBenches
 
-* When starting a testbench press the 'Restart' button
+* Start a testbench in the normal way
 
 * Set a very high number of milliseconds, and press the 'Run-For' button. 
+
+* The testbenches for Autoclave and RC4 will finish quickly, while the testbench for the complete system (Shell) will run for approximately 5 minutes.
 
 * The console window will print 'Test: OK' if the test finished without any errors.
 
