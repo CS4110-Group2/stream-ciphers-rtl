@@ -14,3 +14,13 @@
 
 
 There is also a pre-generated bitstream file, that can be written to FPGA directy
+
+
+# Running TestBenches
+
+* When starting a testbench press the 'Restart' button
+
+* Set a very high number of milliseconds, and press the 'Run-For' button. 
+
+* The console window will print 'Test: OK' if the test finished without any errors.
+
